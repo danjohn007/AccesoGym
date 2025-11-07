@@ -2,6 +2,10 @@
 require_once 'bootstrap.php';
 Auth::requireRole('admin');
 
+// SuperAdmin can select branch, Admin is restricted to their branch
+$user = Auth::user();
+$sucursal_id = Auth::isSuperadmin() ? ($_POST['sucursal_id'] ?? Auth::sucursalId()) : Auth::sucursalId();
+
 $success = false;
 $error = false;
 $message = '';
@@ -32,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['csrf_token'])) {
                             $stmt = $conn->prepare("INSERT INTO socios (codigo, nombre, apellido, email, telefono, sucursal_id, estado) 
                                                    VALUES (?, ?, ?, ?, ?, ?, 'inactivo')");
                             $codigo = 'SOC' . str_pad(rand(1, 99999), 5, '0', STR_PAD_LEFT);
-                            $stmt->execute([$codigo, $data[0], $data[1], $data[2], $data[3], $user['sucursal_id']]);
+                            $stmt->execute([$codigo, $data[0], $data[1], $data[2], $data[3], $sucursal_id]);
                             $imported++;
                         } elseif ($tipo === 'membresias') {
                             // Import memberships: nombre, descripcion, duracion_dias, precio

@@ -44,6 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (empty($telefono)) $errors[] = 'El teléfono es requerido';
         if (!empty($email) && !validateEmail($email)) $errors[] = 'Email inválido';
         if (!validatePhone($telefono)) $errors[] = 'Teléfono inválido (10 dígitos)';
+        if (!empty($telefono_emergencia) && !validatePhone($telefono_emergencia)) $errors[] = 'Teléfono de emergencia inválido (10 dígitos)';
         
         if (empty($errors)) {
             $data = [
@@ -225,6 +226,8 @@ $csrfToken = Auth::generateCsrfToken();
                     <input type="tel" name="telefono" required
                            value="<?php echo htmlspecialchars($socio['telefono'] ?? ''); ?>"
                            placeholder="5551234567"
+                           maxlength="10"
+                           pattern="[0-9]{10}"
                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     <p class="mt-1 text-xs text-gray-500">10 dígitos, sin espacios ni guiones</p>
                 </div>
@@ -234,7 +237,10 @@ $csrfToken = Auth::generateCsrfToken();
                     <input type="tel" name="telefono_emergencia"
                            value="<?php echo htmlspecialchars($socio['telefono_emergencia'] ?? ''); ?>"
                            placeholder="5551234567"
+                           maxlength="10"
+                           pattern="[0-9]{10}"
                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    <p class="mt-1 text-xs text-gray-500">10 dígitos, sin espacios ni guiones</p>
                 </div>
                 
                 <div>

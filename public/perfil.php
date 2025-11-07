@@ -27,6 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (empty($nombre)) $errors[] = 'El nombre es requerido';
         if (empty($email)) $errors[] = 'El email es requerido';
         if (!validateEmail($email)) $errors[] = 'Email inválido';
+        if (!empty($telefono) && !validatePhone($telefono)) $errors[] = 'Teléfono inválido (10 dígitos)';
         
         // Check if email is already taken by another user
         if ($usuarioModel->emailExists($email, $userId)) {
@@ -140,7 +141,11 @@ $csrfToken = Auth::generateCsrfToken();
                     <label class="block text-sm font-medium text-gray-700 mb-2">Teléfono</label>
                     <input type="tel" name="telefono"
                            value="<?php echo htmlspecialchars($userData['telefono'] ?? ''); ?>"
+                           placeholder="5551234567"
+                           maxlength="10"
+                           pattern="[0-9]{10}"
                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    <p class="mt-1 text-xs text-gray-500">10 dígitos, sin espacios ni guiones</p>
                 </div>
                 
                 <div>

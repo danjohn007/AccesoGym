@@ -9,6 +9,9 @@ $conn = $db->getConnection();
 $tipo = $_GET['tipo'] ?? '';
 $fecha_inicio = $_GET['fecha_inicio'] ?? date('Y-m-d', strtotime('-7 days'));
 $fecha_fin = $_GET['fecha_fin'] ?? date('Y-m-d');
+
+// SuperAdmin can filter by branch, Admin is restricted to their branch
+$sucursal_id = Auth::isSuperadmin() ? ($_GET['sucursal_id'] ?? null) : Auth::sucursalId();
 $usuario_id = $_GET['usuario_id'] ?? '';
 $page = $_GET['page'] ?? 1;
 $perPage = 50;
@@ -26,6 +29,12 @@ if ($tipo) {
 if ($usuario_id) {
     $where[] = "usuario_id = ?";
     $params[] = $usuario_id;
+}
+
+// Filter by branch for non-superadmin users
+if ($sucursal_id) {
+    $where[] = "sucursal_id = ?";
+    $params[] = $sucursal_id;
 }
 
 $whereClause = implode(' AND ', $where);
