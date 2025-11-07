@@ -84,7 +84,8 @@ $pageTitle = 'Módulo Financiero';
                     <select name="sucursal_id" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                         <option value="">Todas las sucursales</option>
                         <?php
-                        $stmt = $conn->query("SELECT id, nombre FROM sucursales WHERE activo=1 ORDER BY nombre");
+                        $stmt = $conn->prepare("SELECT id, nombre FROM sucursales WHERE activo=1 ORDER BY nombre");
+                        $stmt->execute();
                         $sucursales = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         foreach ($sucursales as $suc):
                         ?>

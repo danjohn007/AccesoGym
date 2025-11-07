@@ -71,7 +71,8 @@ if ($action === 'list') {
 
 // Load branches based on role
 if (Auth::isSuperadmin()) {
-    $stmt = $conn->query("SELECT id, nombre FROM sucursales WHERE activo=1");
+    $stmt = $conn->prepare("SELECT id, nombre FROM sucursales WHERE activo=1");
+    $stmt->execute();
 } else {
     $stmt = $conn->prepare("SELECT id, nombre FROM sucursales WHERE activo=1 AND id=?");
     $stmt->execute([Auth::sucursalId()]);

@@ -102,13 +102,14 @@ $sucursales = [];
 $sucursal = null;
 
 if ($action === 'list') {
-    $stmt = $conn->query("
+    $stmt = $conn->prepare("
         SELECT s.*,
             (SELECT COUNT(*) FROM socios WHERE sucursal_id = s.id) as total_socios,
             (SELECT COUNT(*) FROM usuarios_staff WHERE sucursal_id = s.id) as total_staff
         FROM sucursales s
         ORDER BY s.created_at DESC
     ");
+    $stmt->execute();
     $sucursales = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } elseif ($action === 'edit') {
     $id = $_GET['id'] ?? 0;
@@ -200,8 +201,8 @@ $csrfToken = Auth::generateCsrfToken();
                             <a href="?action=edit&id=<?php echo $s['id']; ?>" class="text-blue-600 hover:text-blue-900 mr-3">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <?php if ($s['total_socios'] == 0): ?>
-                            <form method="POST" action="?action=delete" class="inline" onsubmit="return confirm('¿Está seguro de eliminar esta sucursal?');">
+                            <?php if ($s['total_socios'] == 0 && $s['total_staff'] == 0): ?>
+                            <form method="POST" action="?action=delete" class="inline" id="deleteForm<?php echo $s['id']; ?>">
                                 <input type="hidden" name="csrf_token" value="<?php echo $csrfToken; ?>">
                                 <input type="hidden" name="id" value="<?php echo $s['id']; ?>">
                                 <button type="submit" class="text-red-600 hover:text-red-900">
@@ -278,5 +279,19 @@ $csrfToken = Auth::generateCsrfToken();
         </div>
         <?php endif; ?>
     </div>
+    
+    <script>
+        // Unobtrusive confirmation for delete actions
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('form[id^="deleteForm"]').forEach(function(form) {
+                form.addEventListener('submit', function(e) {
+                    if (!confirm('¿Está seguro de eliminar esta sucursal? Esta acción no se puede deshacer.')) {
+                        e.preventDefault();
+                        return false;
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html>
