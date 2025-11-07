@@ -170,6 +170,8 @@ header('Expires: 0');
                 $configuredUrl = rtrim(APP_URL, '/');
                 
                 // More flexible URL comparison - check if configured URL is contained in current URL
+                // This allows for protocol differences (http vs https) and subdomain variations
+                // URL mismatch is treated as a warning, not a critical failure
                 $baseUrlCorrect = (strpos($currentUrl, str_replace(['http://', 'https://'], '', $configuredUrl)) !== false)
                                 || (strpos($configuredUrl, str_replace(['http://', 'https://'], '', $currentUrl)) !== false)
                                 || ($configuredUrl === 'http://localhost' && $currentHost === 'localhost');
@@ -183,8 +185,8 @@ header('Expires: 0');
                     'details' => "Configurado: " . $configuredUrl . " | Actual: " . $currentUrl
                 ];
                 
-                // Don't mark as critical failure, just warning
-                // $allPassed is not affected by this check anymore
+                // Note: URL mismatch is not marked as critical failure to allow system to function
+                // in different environments (development, staging, production)
             }
 
             // Test 8: Write Permissions

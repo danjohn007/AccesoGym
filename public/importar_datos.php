@@ -3,8 +3,12 @@ require_once 'bootstrap.php';
 Auth::requireRole('admin');
 
 // SuperAdmin can select branch, Admin is restricted to their branch
-$user = Auth::user();
-$sucursal_id = Auth::isSuperadmin() ? ($_POST['sucursal_id'] ?? Auth::sucursalId()) : Auth::sucursalId();
+// Only check POST sucursal_id when actually processing a POST request
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $sucursal_id = Auth::isSuperadmin() ? ($_POST['sucursal_id'] ?? Auth::sucursalId()) : Auth::sucursalId();
+} else {
+    $sucursal_id = Auth::sucursalId();
+}
 
 $success = false;
 $error = false;

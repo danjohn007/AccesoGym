@@ -61,10 +61,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['csrf_token'])) {
                 // Check if branch has members
                 $stmt = $conn->prepare("SELECT COUNT(*) as total FROM socios WHERE sucursal_id = ?");
                 $stmt->execute([$id]);
-                $result = $stmt->fetch(PDO::FETCH_ASSOC);
+                $sociosCount = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
                 
-                if ($result['total'] > 0) {
+                // Check if branch has staff users
+                $stmt = $conn->prepare("SELECT COUNT(*) as total FROM usuarios_staff WHERE sucursal_id = ?");
+                $stmt->execute([$id]);
+                $staffCount = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+                
+                // Check if branch has devices
+                $stmt = $conn->prepare("SELECT COUNT(*) as total FROM dispositivos_shelly WHERE sucursal_id = ?");
+                $stmt->execute([$id]);
+                $devicesCount = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+                
+                if ($sociosCount > 0) {
                     throw new Exception('No se puede eliminar una sucursal con socios registrados');
+                }
+                
+                if ($staffCount > 0) {
+                    throw new Exception('No se puede eliminar una sucursal con personal asignado');
+                }
+                
+                if ($devicesCount > 0) {
+                    throw new Exception('No se puede eliminar una sucursal con dispositivos registrados');
                 }
                 
                 $sucursalModel->delete($id);

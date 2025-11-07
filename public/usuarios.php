@@ -55,7 +55,8 @@ if ($action === 'list') {
     // For SuperAdmin: see all users
     // For Admin: see only users from their branch
     if (Auth::isSuperadmin()) {
-        $stmt = $conn->query("SELECT u.*, s.nombre as sucursal_nombre FROM usuarios_staff u LEFT JOIN sucursales s ON u.sucursal_id=s.id ORDER BY u.created_at DESC");
+        $stmt = $conn->prepare("SELECT u.*, s.nombre as sucursal_nombre FROM usuarios_staff u LEFT JOIN sucursales s ON u.sucursal_id=s.id ORDER BY u.created_at DESC");
+        $stmt->execute();
     } else {
         $stmt = $conn->prepare("SELECT u.*, s.nombre as sucursal_nombre FROM usuarios_staff u LEFT JOIN sucursales s ON u.sucursal_id=s.id WHERE u.sucursal_id = ? ORDER BY u.created_at DESC");
         $stmt->execute([Auth::sucursalId()]);

@@ -221,7 +221,7 @@ $csrfToken = Auth::generateCsrfToken();
                 <?php if (!$socioId && !$isEdit): ?>
                 <div class="col-span-2">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Socio *</label>
-                    <select name="socio_id" required onchange="window.location.href='pago_form.php?socio_id='+this.value"
+                    <select name="socio_id" required id="socioSelect"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                         <option value="">Seleccione un socio</option>
                         <?php 
@@ -327,6 +327,18 @@ $csrfToken = Auth::generateCsrfToken();
     </div>
     
     <script>
+        // Handle member selection change
+        document.addEventListener('DOMContentLoaded', function() {
+            const socioSelect = document.getElementById('socioSelect');
+            if (socioSelect) {
+                socioSelect.addEventListener('change', function() {
+                    if (this.value) {
+                        window.location.href = 'pago_form.php?socio_id=' + this.value;
+                    }
+                });
+            }
+        });
+        
         function updatePrice() {
             const select = document.querySelector('[name="tipo_membresia_id"]');
             const montoInput = document.getElementById('montoInput');
