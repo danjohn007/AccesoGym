@@ -3,6 +3,9 @@
 -- Date: November 2024
 
 -- Add new columns to dispositivos_shelly table
+-- IMPORTANT: auth_token is stored in plain text for API functionality
+-- Consider implementing encryption at application level if storing sensitive tokens
+-- or use environment variables for production deployments
 ALTER TABLE dispositivos_shelly
 ADD COLUMN auth_token VARCHAR(255) NULL COMMENT 'Token de autenticación de Shelly Cloud' AFTER device_id,
 ADD COLUMN servidor_cloud VARCHAR(255) DEFAULT 'shelly-208-eu.shelly.cloud' COMMENT 'Servidor Cloud de Shelly' AFTER auth_token,

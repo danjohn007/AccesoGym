@@ -5,14 +5,16 @@ Auth::requireAuth();
 require_once __DIR__ . '/../app/models/Pago.php';
 require_once __DIR__ . '/../app/models/Socio.php';
 
-$pagoId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+$pagoId = isset($_GET['id']) ? filter_var($_GET['id'], FILTER_VALIDATE_INT) : 0;
 
-if (!$pagoId) {
+if (!$pagoId || $pagoId <= 0) {
     redirect('pagos.php');
 }
 
 $pagoModel = new Pago();
 $socioModel = new Socio();
+
+$user = Auth::user();
 
 // Get payment details
 $db = Database::getInstance()->getConnection();
@@ -37,7 +39,29 @@ if (!$pago) {
 
 // Check access permissions
 if (!Auth::isSuperadmin() && $pago['sucursal_id'] != Auth::sucursalId()) {
-    die('Acceso no autorizado');
+    header('HTTP/1.0 403 Forbidden');
+    echo '<!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Acceso Denegado - ' . APP_NAME . '</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+    <body class="bg-gray-100">
+        <div class="min-h-screen flex items-center justify-center">
+            <div class="bg-white p-8 rounded-lg shadow-lg text-center max-w-md">
+                <i class="fas fa-exclamation-triangle text-red-500 text-6xl mb-4"></i>
+                <h1 class="text-2xl font-bold text-gray-900 mb-2">Acceso No Autorizado</h1>
+                <p class="text-gray-600 mb-6">No tienes permisos para ver este pago.</p>
+                <a href="pagos.php" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded">
+                    Volver a Pagos
+                </a>
+            </div>
+        </div>
+    </body>
+    </html>';
+    exit;
 }
 
 $pageTitle = 'Detalle del Pago';

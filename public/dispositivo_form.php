@@ -248,7 +248,7 @@ $csrfToken = Auth::generateCsrfToken();
                     <input type="number" name="duracion_pulso" min="1000" max="10000" step="100"
                            value="<?php echo htmlspecialchars($dispositivo['duracion_pulso'] ?? 4000); ?>"
                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                    <p class="mt-1 text-xs text-gray-500">Por defecto: 5000 ms. Máximo: 10 seg</p>
+                    <p class="mt-1 text-xs text-gray-500">Por defecto: 4000 ms. Máximo: 10 seg</p>
                 </div>
                 
                 <div>
