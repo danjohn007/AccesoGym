@@ -52,7 +52,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['csrf_token'])) {
 $usuarios = [];
 $sucursales = [];
 if ($action === 'list') {
-    $stmt = $conn->query("SELECT u.*, s.nombre as sucursal_nombre FROM usuarios_staff u LEFT JOIN sucursales s ON u.sucursal_id=s.id ORDER BY u.created_at DESC");
+    // For SuperAdmin: see all users
+    // For Admin: see only users from their branch
+    if (Auth::isSuperadmin()) {
+        $stmt = $conn->prepare("SELECT u.*, s.nombre as sucursal_nombre FROM usuarios_staff u LEFT JOIN sucursales s ON u.sucursal_id=s.id ORDER BY u.created_at DESC");
+        $stmt->execute();
+    } else {
+        $stmt = $conn->prepare("SELECT u.*, s.nombre as sucursal_nombre FROM usuarios_staff u LEFT JOIN sucursales s ON u.sucursal_id=s.id WHERE u.sucursal_id = ? ORDER BY u.created_at DESC");
+        $stmt->execute([Auth::sucursalId()]);
+    }
     $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } elseif ($action === 'edit') {
     $id = $_GET['id'] ?? 0;
@@ -61,7 +69,14 @@ if ($action === 'list') {
     $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
-$stmt = $conn->query("SELECT id, nombre FROM sucursales WHERE activo=1");
+// Load branches based on role
+if (Auth::isSuperadmin()) {
+    $stmt = $conn->prepare("SELECT id, nombre FROM sucursales WHERE activo=1");
+    $stmt->execute();
+} else {
+    $stmt = $conn->prepare("SELECT id, nombre FROM sucursales WHERE activo=1 AND id=?");
+    $stmt->execute([Auth::sucursalId()]);
+}
 $sucursales = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 $pageTitle = 'Gestión de Usuarios';

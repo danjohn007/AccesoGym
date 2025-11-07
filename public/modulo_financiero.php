@@ -77,7 +77,25 @@ $pageTitle = 'Módulo Financiero';
         
         <!-- Filters -->
         <div class="bg-white rounded-lg shadow p-6 mb-6">
-            <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <form method="GET" class="grid grid-cols-1 md:grid-cols-<?php echo Auth::isSuperadmin() ? '4' : '3'; ?> gap-4">
+                <?php if (Auth::isSuperadmin()): ?>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Sucursal</label>
+                    <select name="sucursal_id" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Todas las sucursales</option>
+                        <?php
+                        $stmt = $conn->prepare("SELECT id, nombre FROM sucursales WHERE activo=1 ORDER BY nombre");
+                        $stmt->execute();
+                        $sucursales = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                        foreach ($sucursales as $suc):
+                        ?>
+                        <option value="<?php echo $suc['id']; ?>" <?php echo ($sucursal_id == $suc['id']) ? 'selected' : ''; ?>>
+                            <?php echo htmlspecialchars($suc['nombre']); ?>
+                        </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <?php endif; ?>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Fecha Inicio</label>
                     <input type="date" name="fecha_inicio" value="<?php echo $fecha_inicio; ?>" 

@@ -164,22 +164,29 @@ header('Expires: 0');
 
             // Test 7: Base URL Configuration
             if ($configExists && defined('APP_URL')) {
-                $currentUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") 
-                            . "://" . $_SERVER['HTTP_HOST'];
-                $baseUrlCorrect = (strpos($currentUrl, rtrim(APP_URL, '/')) === 0);
+                $currentProtocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? "https" : "http";
+                $currentHost = $_SERVER['HTTP_HOST'] ?? 'localhost';
+                $currentUrl = $currentProtocol . "://" . $currentHost;
+                $configuredUrl = rtrim(APP_URL, '/');
+                
+                // More flexible URL comparison - check if configured URL is contained in current URL
+                // This allows for protocol differences (http vs https) and subdomain variations
+                // URL mismatch is treated as a warning, not a critical failure
+                $baseUrlCorrect = (strpos($currentUrl, str_replace(['http://', 'https://'], '', $configuredUrl)) !== false)
+                                || (strpos($configuredUrl, str_replace(['http://', 'https://'], '', $currentUrl)) !== false)
+                                || ($configuredUrl === 'http://localhost' && $currentHost === 'localhost');
                 
                 $tests[] = [
                     'name' => 'URL Base (APP_URL)',
                     'status' => $baseUrlCorrect,
                     'message' => $baseUrlCorrect 
                         ? 'URL configurada correctamente' 
-                        : 'URL no coincide con la configuración',
-                    'details' => "Configurado: " . APP_URL . " | Actual: " . $currentUrl
+                        : 'URL no coincide - Actualizar config.php con la URL correcta',
+                    'details' => "Configurado: " . $configuredUrl . " | Actual: " . $currentUrl
                 ];
                 
-                if (!$baseUrlCorrect) {
-                    $allPassed = false;
-                }
+                // Note: URL mismatch is not marked as critical failure to allow system to function
+                // in different environments (development, staging, production)
             }
 
             // Test 8: Write Permissions
@@ -214,15 +221,25 @@ header('Expires: 0');
             ];
 
             // Test 10: Session
+            $sessionTest = true;
+            $sessionId = 'N/A';
+            
             if (session_status() === PHP_SESSION_NONE) {
                 @session_start();
             }
-            $sessionTest = (session_status() === PHP_SESSION_ACTIVE);
+            
+            if (session_status() === PHP_SESSION_ACTIVE) {
+                $sessionTest = true;
+                $sessionId = substr(session_id(), 0, 10) . '...';
+            } else {
+                $sessionTest = false;
+            }
+            
             $tests[] = [
                 'name' => 'Soporte de Sesiones',
                 'status' => $sessionTest,
-                'message' => $sessionTest ? 'Sesiones funcionando' : 'Error con sesiones',
-                'details' => 'Session ID: ' . ($sessionTest ? substr(session_id(), 0, 10) . '...' : 'N/A')
+                'message' => $sessionTest ? 'Sesiones funcionando correctamente' : 'Error con sesiones',
+                'details' => 'Session ID: ' . $sessionId
             ];
             $allPassed = $allPassed && $sessionTest;
 
