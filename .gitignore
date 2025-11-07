@@ -1,0 +1,36 @@
+# Uploads and user-generated content
+uploads/photos/*
+!uploads/photos/.gitkeep
+uploads/documents/*
+!uploads/documents/.gitkeep
+
+# Logs
+logs/*.log
+logs/*
+!logs/.gitkeep
+
+# Configuration files with sensitive data
+config/config.php
+
+# Cache files
+*.cache
+
+# Composer
+vendor/
+composer.lock
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+*.tmp
