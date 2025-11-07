@@ -6,9 +6,9 @@
 
 // Database Configuration
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'accessgym');
-define('DB_USER', 'root');
-define('DB_PASS', '');
+define('DB_NAME', 'fix360_accesogym');
+define('DB_USER', 'fix360_accesogym');
+define('DB_PASS', 'Danjohn007!');
 define('DB_CHARSET', 'utf8mb4');
 
 // Application Configuration
