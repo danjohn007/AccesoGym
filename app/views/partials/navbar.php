@@ -1,46 +1,79 @@
-<nav class="bg-white shadow-lg relative" x-data="{ sidebarOpen: false }">
+<nav class="bg-white shadow-lg relative" x-data="{ sidebarOpen: false, accountOpen: false }">
     <div class="container mx-auto px-4">
         <div class="flex justify-between items-center py-4">
             <!-- Logo -->
             <div class="flex items-center">
+                <button @click="sidebarOpen = !sidebarOpen" class="lg:hidden text-gray-700 hover:text-blue-600 focus:outline-none mr-3">
+                    <i class="fas fa-bars text-2xl"></i>
+                </button>
                 <i class="fas fa-dumbbell text-2xl text-blue-600 mr-2"></i>
                 <span class="text-xl font-bold text-gray-800"><?php echo APP_NAME; ?></span>
             </div>
             
-            <!-- Menu button -->
-            <div>
-                <button @click="sidebarOpen = true" class="text-gray-700 hover:text-blue-600 focus:outline-none">
-                    <i class="fas fa-bars text-2xl"></i>
+            <!-- Account Dropdown (Desktop) -->
+            <div class="relative">
+                <button @click="accountOpen = !accountOpen" 
+                        class="flex items-center space-x-2 text-gray-700 hover:text-blue-600 focus:outline-none">
+                    <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <span class="hidden md:inline text-sm font-medium"><?php echo htmlspecialchars($user['nombre'] ?? 'Usuario'); ?></span>
+                    <i class="fas fa-chevron-down text-xs"></i>
                 </button>
+                
+                <!-- Dropdown Menu -->
+                <div x-show="accountOpen" 
+                     @click.away="accountOpen = false"
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0 scale-95"
+                     x-transition:enter-end="opacity-100 scale-100"
+                     x-transition:leave="transition ease-in duration-75"
+                     x-transition:leave-start="opacity-100 scale-100"
+                     x-transition:leave-end="opacity-0 scale-95"
+                     class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
+                     style="display: none;">
+                    <div class="px-4 py-2 border-b border-gray-200">
+                        <p class="text-sm font-medium text-gray-900"><?php echo htmlspecialchars($user['nombre'] ?? 'Usuario'); ?></p>
+                        <p class="text-xs text-gray-500 capitalize"><?php echo htmlspecialchars($user['rol'] ?? ''); ?></p>
+                    </div>
+                    
+                    <a href="perfil.php" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50">
+                        <i class="fas fa-user w-4 mr-2"></i>Mi Perfil
+                    </a>
+                    
+                    <?php if (Auth::isSuperadmin()): ?>
+                    <a href="configuracion.php" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50">
+                        <i class="fas fa-cog w-4 mr-2"></i>Configuración
+                    </a>
+                    
+                    <a href="sucursales.php" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50">
+                        <i class="fas fa-building w-4 mr-2"></i>Sucursales
+                    </a>
+                    <?php endif; ?>
+                    
+                    <div class="border-t border-gray-200 mt-1"></div>
+                    
+                    <a href="logout.php" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                        <i class="fas fa-sign-out-alt w-4 mr-2"></i>Cerrar Sesión
+                    </a>
+                </div>
             </div>
         </div>
     </div>
     
-    <!-- Sidebar Overlay -->
+    <!-- Sidebar Overlay (Mobile only) -->
     <div x-show="sidebarOpen" 
-         x-transition:enter="transition ease-out duration-300"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-200"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0"
          @click="sidebarOpen = false"
-         class="fixed inset-0 bg-black bg-opacity-50 z-40"
+         class="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
          style="display: none;">
     </div>
     
     <!-- Sidebar -->
     <div x-show="sidebarOpen"
-         x-transition:enter="transition ease-out duration-300 transform"
-         x-transition:enter-start="-translate-x-full"
-         x-transition:enter-end="translate-x-0"
-         x-transition:leave="transition ease-in duration-200 transform"
-         x-transition:leave-start="translate-x-0"
-         x-transition:leave-end="-translate-x-full"
-         class="fixed top-0 left-0 h-full w-80 bg-white shadow-2xl z-50 overflow-y-auto"
+         class="lg:hidden fixed top-0 left-0 h-full w-80 bg-white shadow-2xl z-50 overflow-y-auto"
          style="display: none;">
         
-        <!-- Sidebar Header -->
+        <!-- Sidebar Header (Mobile) -->
         <div class="bg-blue-600 text-white p-6">
             <div class="flex justify-between items-start mb-4">
                 <div class="flex items-center">
@@ -69,6 +102,39 @@
             </div>
         </div>
         
+        <!-- Sidebar Menu (Mobile - Only 4 main items) -->
+        <div class="py-4">
+            <a href="dashboard.php" class="flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                <i class="fas fa-home w-5 mr-3"></i>
+                <span class="font-medium">Dashboard</span>
+            </a>
+            
+            <a href="socios.php" class="flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                <i class="fas fa-users w-5 mr-3"></i>
+                <span class="font-medium">Socios</span>
+            </a>
+            
+            <a href="accesos.php" class="flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                <i class="fas fa-door-open w-5 mr-3"></i>
+                <span class="font-medium">Accesos</span>
+            </a>
+            
+            <a href="pagos.php" class="flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                <i class="fas fa-dollar-sign w-5 mr-3"></i>
+                <span class="font-medium">Pagos</span>
+            </a>
+        </div>
+        
+        <!-- Sidebar Footer -->
+        <div class="absolute bottom-0 left-0 right-0 p-4 bg-gray-50 border-t">
+            <p class="text-xs text-center text-gray-500">
+                © <?php echo date('Y'); ?> <?php echo APP_NAME; ?>
+            </p>
+        </div>
+    </div>
+    
+    <!-- Desktop Sidebar (Always visible) -->
+    <div class="hidden lg:block fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 bg-white shadow-lg overflow-y-auto z-30">
         <!-- Sidebar Menu -->
         <div class="py-4">
             <!-- Main Section -->
@@ -137,45 +203,15 @@
                 <span class="font-medium">Auditoría</span>
             </a>
             <?php endif; ?>
-            
-            <?php if (Auth::isSuperadmin()): ?>
-            <!-- Superadmin Section -->
-            <div class="px-4 mt-4 mb-2">
-                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Superadmin</p>
-            </div>
-            
-            <a href="sucursales.php" class="flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
-                <i class="fas fa-building w-5 mr-3"></i>
-                <span class="font-medium">Sucursales</span>
-            </a>
-            
-            <a href="configuracion.php" class="flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
-                <i class="fas fa-cog w-5 mr-3"></i>
-                <span class="font-medium">Configuración</span>
-            </a>
-            <?php endif; ?>
-            
-            <!-- Account Section -->
-            <div class="px-4 mt-4 mb-2">
-                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Cuenta</p>
-            </div>
-            
-            <a href="perfil.php" class="flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
-                <i class="fas fa-user w-5 mr-3"></i>
-                <span class="font-medium">Mi Perfil</span>
-            </a>
-            
-            <a href="logout.php" class="flex items-center px-6 py-3 text-red-600 hover:bg-red-50 transition-colors">
-                <i class="fas fa-sign-out-alt w-5 mr-3"></i>
-                <span class="font-medium">Cerrar Sesión</span>
-            </a>
-        </div>
-        
-        <!-- Sidebar Footer -->
-        <div class="absolute bottom-0 left-0 right-0 p-4 bg-gray-50 border-t">
-            <p class="text-xs text-center text-gray-500">
-                © <?php echo date('Y'); ?> <?php echo APP_NAME; ?>
-            </p>
         </div>
     </div>
+    
+    <!-- Add padding to main content for desktop sidebar -->
+    <style>
+        @media (min-width: 1024px) {
+            body > div.container {
+                margin-left: 16rem; /* 256px (w-64) */
+            }
+        }
+    </style>
 </nav>
