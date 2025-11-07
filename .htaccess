@@ -3,7 +3,11 @@
     RewriteEngine On
     RewriteBase /
     
-    # Redirect to public directory
+    # Allow direct access to files that exist
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    
+    # Redirect to public directory if not already there
     RewriteCond %{REQUEST_URI} !^/public/
     RewriteRule ^(.*)$ /public/$1 [L]
 </IfModule>
