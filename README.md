@@ -125,6 +125,8 @@ Abrir en el navegador: `http://localhost/` o `http://accessgym.local/`
 - Email: `admin@accessgym.com`
 - Contraseña: `admin123`
 
+⚠️ **CRÍTICO - SEGURIDAD**: **DEBES cambiar la contraseña por defecto INMEDIATAMENTE** después del primer inicio de sesión. Usa una contraseña fuerte con al menos 12 caracteres, incluyendo mayúsculas, minúsculas, números y símbolos especiales.
+
 ## ⚙️ Configuración
 
 ### 1. Configuración General del Sistema

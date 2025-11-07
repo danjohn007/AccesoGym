@@ -29,8 +29,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $input = file_get_contents('php://input');
     $data = json_decode($input, true);
     
-    // Log incoming webhook
-    error_log("WhatsApp Webhook: " . $input);
+    // Log incoming webhook (sanitized)
+    if (defined('LOGS_PATH')) {
+        $logData = is_array($data) ? json_encode(['entries' => count($data['entry'] ?? [])]) : 'invalid';
+        error_log("WhatsApp Webhook received: " . $logData);
+    }
     
     if (!$data) {
         http_response_code(400);

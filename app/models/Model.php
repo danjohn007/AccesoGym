@@ -25,6 +25,15 @@ class Model {
      * Find all records
      */
     public function findAll($orderBy = 'id', $order = 'ASC') {
+        // Whitelist allowed columns and order directions for security
+        $allowedOrders = ['ASC', 'DESC'];
+        $order = in_array(strtoupper($order), $allowedOrders) ? strtoupper($order) : 'ASC';
+        
+        // Basic column name validation (alphanumeric and underscore only)
+        if (!preg_match('/^[a-zA-Z0-9_]+$/', $orderBy)) {
+            $orderBy = 'id';
+        }
+        
         $stmt = $this->db->query("SELECT * FROM {$this->table} ORDER BY {$orderBy} {$order}");
         return $stmt->fetchAll();
     }

@@ -72,8 +72,11 @@ define('VIEWS_PATH', APP_PATH . '/views');
 define('LOGS_PATH', BASE_PATH . '/logs');
 
 // Error Reporting
+// IMPORTANT: Set to 0 in production
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
+ini_set('display_errors', 0); // Change to 0 for production
+ini_set('log_errors', 1);
+ini_set('error_log', LOGS_PATH . '/php_errors.log');
 
 // Timezone
 date_default_timezone_set(APP_TIMEZONE);

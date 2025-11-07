@@ -98,7 +98,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     // Generate QR code image
                     $qrUrl = generateQrCode($codigo);
                     $qrImagePath = UPLOAD_PATH . 'photos/' . $qrFilename;
-                    file_put_contents($qrImagePath, file_get_contents($qrUrl));
+                    
+                    // Download QR code with validation
+                    $context = stream_context_create([
+                        'http' => [
+                            'timeout' => 10,
+                            'user_agent' => 'AccessGYM/1.0'
+                        ]
+                    ]);
+                    
+                    $qrContent = @file_get_contents($qrUrl, false, $context);
+                    if ($qrContent !== false && strlen($qrContent) > 0) {
+                        file_put_contents($qrImagePath, $qrContent);
+                    }
                     
                     logEvent('sistema', "Nuevo socio registrado: {$nombre} {$apellido}", Auth::id(), $newId, $sucursal_id);
                     
