@@ -1,0 +1,35 @@
+# Public directory .htaccess
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # Allow all PHP files in public directory
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    
+    # If accessing root, redirect to index.php
+    RewriteRule ^$ index.php [L]
+</IfModule>
+
+# Prevent access to parent directories
+<IfModule mod_alias.c>
+    RedirectMatch 403 /\.git
+    RedirectMatch 403 /config/
+    RedirectMatch 403 /database/
+    RedirectMatch 403 /logs/
+</IfModule>
+
+# Security headers
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+</IfModule>
+
+# PHP error display settings
+# For production, keep these disabled for security
+# For development, uncomment the following lines:
+# php_flag display_errors on
+# php_value error_reporting E_ALL
+
+# Ensure errors are disabled in production (default)
+php_flag display_errors off
