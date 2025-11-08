@@ -47,11 +47,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
         
+        // Handle photo upload
+        $fotoPath = $userData['foto'] ?? null;
+        if (isset($_FILES['foto']) && $_FILES['foto']['error'] === UPLOAD_ERR_OK) {
+            $allowedTypes = ALLOWED_IMAGE_TYPES;
+            $maxSize = MAX_FILE_SIZE;
+            
+            if (in_array($_FILES['foto']['type'], $allowedTypes) && $_FILES['foto']['size'] <= $maxSize) {
+                $uploadDir = UPLOAD_PATH . 'staff/';
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0755, true);
+                }
+                
+                $extension = pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION);
+                $filename = 'staff_' . $userId . '_' . time() . '.' . $extension;
+                $destination = $uploadDir . $filename;
+                
+                if (move_uploaded_file($_FILES['foto']['tmp_name'], $destination)) {
+                    $fotoPath = '/uploads/staff/' . $filename;
+                    
+                    // Delete old photo if exists
+                    if (!empty($userData['foto']) && file_exists(UPLOAD_PATH . ltrim($userData['foto'], '/'))) {
+                        unlink(UPLOAD_PATH . ltrim($userData['foto'], '/'));
+                    }
+                } else {
+                    $errors[] = 'Error al subir la foto';
+                }
+            } else {
+                $errors[] = 'Foto inválida (solo JPG/PNG, máximo 5MB)';
+            }
+        }
+        
         if (empty($errors)) {
             $data = [
                 'nombre' => $nombre,
                 'email' => $email,
-                'telefono' => $telefono
+                'telefono' => $telefono,
+                'foto' => $fotoPath
             ];
             
             $usuarioModel->update($userId, $data);
@@ -113,7 +145,7 @@ $csrfToken = Auth::generateCsrfToken();
         <?php endif; ?>
         
         <!-- Profile Form -->
-        <form method="POST" class="bg-white rounded-lg shadow">
+        <form method="POST" enctype="multipart/form-data" class="bg-white rounded-lg shadow">
             <input type="hidden" name="csrf_token" value="<?php echo $csrfToken; ?>">
             
             <!-- Personal Information -->
@@ -123,6 +155,27 @@ $csrfToken = Auth::generateCsrfToken();
                 </h2>
             </div>
             <div class="p-6 space-y-4">
+                <!-- Profile Photo -->
+                <div class="flex items-center space-x-6">
+                    <div class="flex-shrink-0">
+                        <?php if (!empty($userData['foto']) && file_exists(UPLOAD_PATH . ltrim($userData['foto'], '/'))): ?>
+                            <img src="<?php echo htmlspecialchars($userData['foto']); ?>" 
+                                 alt="Foto de perfil" 
+                                 class="h-24 w-24 rounded-full object-cover border-2 border-gray-300">
+                        <?php else: ?>
+                            <div class="h-24 w-24 rounded-full bg-blue-600 flex items-center justify-center text-white text-3xl font-bold border-2 border-gray-300">
+                                <?php echo strtoupper(substr($userData['nombre'], 0, 1)); ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                    <div class="flex-1">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Foto de Perfil</label>
+                        <input type="file" name="foto" accept="image/jpeg,image/png,image/jpg"
+                               class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                        <p class="mt-1 text-xs text-gray-500">JPG, PNG o JPEG (máximo 5MB)</p>
+                    </div>
+                </div>
+                
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Nombre *</label>
                     <input type="text" name="nombre" required

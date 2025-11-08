@@ -1,4 +1,4 @@
-<nav class="bg-white shadow-lg relative" x-data="{ sidebarOpen: false, accountOpen: false }">
+<nav class="bg-white shadow-lg fixed top-0 left-0 right-0 z-50" x-data="{ sidebarOpen: false, accountOpen: false }">
     <div class="container mx-auto px-4">
         <div class="flex justify-between items-center py-4">
             <!-- Logo -->
@@ -8,6 +8,54 @@
                 </button>
                 <i class="fas fa-dumbbell text-2xl text-blue-600 mr-2"></i>
                 <span class="text-xl font-bold text-gray-800"><?php echo APP_NAME; ?></span>
+            </div>
+            
+            <!-- Global Search (Desktop & Mobile) -->
+            <div class="flex-1 mx-4 hidden md:block" x-data="{ searchOpen: false, searchQuery: '', searchResults: [] }">
+                <div class="relative max-w-lg mx-auto">
+                    <input type="text" 
+                           x-model="searchQuery"
+                           @input.debounce.500ms="if(searchQuery.length >= 2) { fetch('/buscar_socios.php?q=' + encodeURIComponent(searchQuery)).then(r => r.json()).then(data => searchResults = data); } else { searchResults = []; }"
+                           @focus="searchOpen = true"
+                           @click.away="searchOpen = false"
+                           placeholder="Buscar socio por nombre, código, email o teléfono..."
+                           class="w-full px-4 py-2 pl-10 pr-4 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    
+                    <!-- Search Results Dropdown -->
+                    <div x-show="searchOpen && searchResults.length > 0" 
+                         class="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-lg border border-gray-200 max-h-96 overflow-y-auto z-50"
+                         style="display: none;">
+                        <template x-for="result in searchResults" :key="result.id">
+                            <a :href="'socio_detalle.php?id=' + result.id" 
+                               class="block px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 mr-3">
+                                        <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-semibold" x-text="result.nombre.charAt(0)"></div>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium text-gray-900" x-text="result.nombre + ' ' + result.apellido"></p>
+                                        <p class="text-xs text-gray-500">
+                                            <span x-text="result.codigo"></span> • 
+                                            <span x-text="result.email"></span> • 
+                                            <span x-text="result.telefono"></span>
+                                        </p>
+                                    </div>
+                                    <div class="flex-shrink-0">
+                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+                                              :class="{
+                                                  'bg-green-100 text-green-800': result.estado === 'activo',
+                                                  'bg-red-100 text-red-800': result.estado === 'vencido',
+                                                  'bg-gray-100 text-gray-800': result.estado === 'inactivo',
+                                                  'bg-yellow-100 text-yellow-800': result.estado === 'suspendido'
+                                              }"
+                                              x-text="result.estado"></span>
+                                    </div>
+                                </div>
+                            </a>
+                        </template>
+                    </div>
+                </div>
             </div>
             
             <!-- Account Dropdown (Desktop) -->
@@ -102,8 +150,13 @@
             </div>
         </div>
         
-        <!-- Sidebar Menu (Mobile - Only 4 main items) -->
-        <div class="py-4">
+        <!-- Sidebar Menu (Mobile - All items) -->
+        <div class="py-4 pb-24">
+            <!-- Main Section -->
+            <div class="px-4 mb-2">
+                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Menú Principal</p>
+            </div>
+            
             <a href="dashboard.php" class="flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
                 <i class="fas fa-home w-5 mr-3"></i>
                 <span class="font-medium">Dashboard</span>
@@ -123,6 +176,75 @@
                 <i class="fas fa-dollar-sign w-5 mr-3"></i>
                 <span class="font-medium">Pagos</span>
             </a>
+            
+            <?php if (Auth::isAdmin()): ?>
+            <!-- Admin Section -->
+            <div class="px-4 mt-4 mb-2">
+                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Administración</p>
+            </div>
+            
+            <a href="dispositivos.php" class="flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                <i class="fas fa-wifi w-5 mr-3"></i>
+                <span class="font-medium">Dispositivos</span>
+            </a>
+            
+            <a href="reportes.php" class="flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                <i class="fas fa-chart-bar w-5 mr-3"></i>
+                <span class="font-medium">Reportes</span>
+            </a>
+            
+            <a href="membresias.php" class="flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                <i class="fas fa-id-card w-5 mr-3"></i>
+                <span class="font-medium">Membresías</span>
+            </a>
+            
+            <a href="modulo_financiero.php" class="flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                <i class="fas fa-chart-line w-5 mr-3"></i>
+                <span class="font-medium">Módulo Financiero</span>
+            </a>
+            
+            <a href="usuarios.php" class="flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                <i class="fas fa-user-shield w-5 mr-3"></i>
+                <span class="font-medium">Usuarios</span>
+            </a>
+            
+            <a href="importar_datos.php" class="flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                <i class="fas fa-file-import w-5 mr-3"></i>
+                <span class="font-medium">Importar Datos</span>
+            </a>
+            
+            <a href="auditoria.php" class="flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                <i class="fas fa-clipboard-list w-5 mr-3"></i>
+                <span class="font-medium">Auditoría</span>
+            </a>
+            <?php endif; ?>
+            
+            <!-- Account Section (from top right) -->
+            <div class="px-4 mt-4 mb-2 border-t pt-4">
+                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Cuenta</p>
+            </div>
+            
+            <a href="perfil.php" class="flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                <i class="fas fa-user w-5 mr-3"></i>
+                <span class="font-medium">Mi Perfil</span>
+            </a>
+            
+            <?php if (Auth::isSuperadmin()): ?>
+            <a href="configuracion.php" class="flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                <i class="fas fa-cog w-5 mr-3"></i>
+                <span class="font-medium">Configuración</span>
+            </a>
+            
+            <a href="sucursales.php" class="flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                <i class="fas fa-building w-5 mr-3"></i>
+                <span class="font-medium">Sucursales</span>
+            </a>
+            <?php endif; ?>
+            
+            <a href="logout.php" class="flex items-center px-6 py-3 text-red-600 hover:bg-red-50 transition-colors">
+                <i class="fas fa-sign-out-alt w-5 mr-3"></i>
+                <span class="font-medium">Cerrar Sesión</span>
+            </a>
         </div>
         
         <!-- Sidebar Footer -->
@@ -134,7 +256,7 @@
     </div>
     
     <!-- Desktop Sidebar (Always visible) -->
-    <div class="hidden lg:block fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 bg-white shadow-lg overflow-y-auto z-30">
+    <div class="hidden lg:block fixed left-0 top-[4.5rem] h-[calc(100vh-4.5rem)] w-64 bg-white shadow-lg overflow-y-auto z-30">
         <!-- Sidebar Menu -->
         <div class="py-4">
             <!-- Main Section -->
@@ -206,10 +328,17 @@
         </div>
     </div>
     
-    <!-- Add padding to main content for desktop sidebar -->
+    <!-- Add padding to main content for desktop sidebar and fixed navbar -->
     <style>
+        /* Fixed navbar: Add top padding to body content */
+        body {
+            padding-top: 4.5rem; /* Height of fixed navbar */
+        }
+        
+        /* Desktop sidebar: Add left margin to main content */
         @media (min-width: 1024px) {
-            body > div.container {
+            body > div.container,
+            body > .container {
                 margin-left: 16rem; /* 256px (w-64) */
             }
         }

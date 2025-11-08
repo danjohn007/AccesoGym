@@ -41,6 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['csrf_token'])) {
                 'telefono_principal', 'telefono_secundario',
                 'horario_apertura', 'horario_cierre', 'dias_operacion',
                 'color_primario', 'color_secundario', 'color_acento',
+                'fuente_principal', 'border_radius',
                 'paypal_enabled', 'paypal_client_id', 'paypal_secret',
                 'qr_api_enabled', 'qr_api_url', 'qr_api_key',
                 'mantenimiento_modo', 'registros_por_pagina', 'zona_horaria'
@@ -396,14 +397,45 @@ $csrfToken = Auth::generateCsrfToken();
                         </div>
                     </div>
                     
-                    <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Fuente Principal
+                            </label>
+                            <select name="fuente_principal" 
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="system" <?php echo getConfig('fuente_principal', 'system') === 'system' ? 'selected' : ''; ?>>Fuente del Sistema</option>
+                                <option value="inter" <?php echo getConfig('fuente_principal', 'system') === 'inter' ? 'selected' : ''; ?>>Inter</option>
+                                <option value="roboto" <?php echo getConfig('fuente_principal', 'system') === 'roboto' ? 'selected' : ''; ?>>Roboto</option>
+                                <option value="opensans" <?php echo getConfig('fuente_principal', 'system') === 'opensans' ? 'selected' : ''; ?>>Open Sans</option>
+                                <option value="poppins" <?php echo getConfig('fuente_principal', 'system') === 'poppins' ? 'selected' : ''; ?>>Poppins</option>
+                            </select>
+                            <p class="mt-1 text-xs text-gray-500">Tipografía del sistema</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Bordes Redondeados
+                            </label>
+                            <select name="border_radius" 
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="none" <?php echo getConfig('border_radius', 'medium') === 'none' ? 'selected' : ''; ?>>Sin redondeo</option>
+                                <option value="small" <?php echo getConfig('border_radius', 'medium') === 'small' ? 'selected' : ''; ?>>Pequeño</option>
+                                <option value="medium" <?php echo getConfig('border_radius', 'medium') === 'medium' ? 'selected' : ''; ?>>Mediano</option>
+                                <option value="large" <?php echo getConfig('border_radius', 'medium') === 'large' ? 'selected' : ''; ?>>Grande</option>
+                            </select>
+                            <p class="mt-1 text-xs text-gray-500">Estilo de bordes de elementos</p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mt-6">
                         <div class="flex">
                             <div class="flex-shrink-0">
-                                <i class="fas fa-exclamation-triangle text-yellow-400"></i>
+                                <i class="fas fa-info-circle text-blue-400"></i>
                             </div>
                             <div class="ml-3">
-                                <p class="text-sm text-yellow-700">
-                                    Los cambios de color se aplicarán en futuras versiones con CSS personalizado. Actualmente se usa Tailwind CSS.
+                                <p class="text-sm text-blue-700">
+                                    Los cambios de estilo se aplicarán inmediatamente después de guardar. Recarga la página para ver los cambios.
                                 </p>
                             </div>
                         </div>

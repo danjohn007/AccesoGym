@@ -1,6 +1,6 @@
 <?php
 require_once 'bootstrap.php';
-Auth::requireRole('admin');
+Auth::requireRole(['superadmin', 'admin']);
 
 $db = Database::getInstance();
 $conn = $db->getConnection();

@@ -5,12 +5,13 @@
  */
 
 class ShellyService {
-    private $apiUrl;
-    private $apiKey;
+    private $serverUrl;
+    private $authToken;
     
     public function __construct() {
-        $this->apiUrl = SHELLY_API_URL;
-        $this->apiKey = SHELLY_API_KEY;
+        // Use the cloud server from config or default
+        $this->serverUrl = defined('SHELLY_SERVER_URL') ? SHELLY_SERVER_URL : 'https://shelly-208-eu.shelly.cloud';
+        $this->authToken = defined('SHELLY_AUTH_TOKEN') ? SHELLY_AUTH_TOKEN : SHELLY_API_KEY;
     }
     
     /**
@@ -21,14 +22,15 @@ class ShellyService {
             return ['success' => false, 'message' => 'Shelly API no habilitada'];
         }
         
-        $url = str_replace('/device/status', '/device/relay/control', $this->apiUrl);
+        // Shelly Cloud API endpoint for controlling device
+        $url = $this->serverUrl . '/device/relay/control';
         
         $data = [
-            'auth_key' => $this->apiKey,
-            'id' => $deviceId,
             'channel' => 0,
             'turn' => 'on',
-            'timer' => $duration
+            'timer' => $duration,
+            'id' => $deviceId,
+            'auth_key' => $this->authToken
         ];
         
         $response = $this->makeRequest($url, $data);
@@ -37,7 +39,13 @@ class ShellyService {
             return ['success' => true, 'message' => 'Puerta abierta'];
         }
         
-        return ['success' => false, 'message' => 'Error al abrir puerta'];
+        // Return more detailed error message
+        $errorMsg = 'Error al abrir puerta';
+        if ($response && isset($response['errors'])) {
+            $errorMsg .= ': ' . json_encode($response['errors']);
+        }
+        
+        return ['success' => false, 'message' => $errorMsg];
     }
     
     /**
@@ -48,12 +56,14 @@ class ShellyService {
             return ['success' => false, 'message' => 'Shelly API no habilitada'];
         }
         
+        $url = $this->serverUrl . '/device/status';
+        
         $data = [
-            'auth_key' => $this->apiKey,
-            'id' => $deviceId
+            'id' => $deviceId,
+            'auth_key' => $this->authToken
         ];
         
-        $response = $this->makeRequest($this->apiUrl, $data);
+        $response = $this->makeRequest($url, $data);
         
         if ($response && isset($response['isok']) && $response['isok']) {
             return [
