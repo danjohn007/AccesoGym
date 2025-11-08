@@ -1,5 +1,5 @@
 <!-- Custom Styles from Configuration -->
-<link rel="stylesheet" href="/custom_styles.php">
+<link rel="stylesheet" href="<?php echo APP_URL; ?>/custom_styles.php">
 
 <nav class="bg-white shadow-lg fixed top-0 left-0 right-0 z-50" x-data="{ sidebarOpen: false, accountOpen: false }">
     <div class="container mx-auto px-4">
@@ -18,7 +18,7 @@
                 <div class="relative max-w-lg mx-auto">
                     <input type="text" 
                            x-model="searchQuery"
-                           @input.debounce.500ms="if(searchQuery.length >= 2) { fetch('/buscar_socios.php?q=' + encodeURIComponent(searchQuery)).then(r => r.json()).then(data => searchResults = data); } else { searchResults = []; }"
+                           @input.debounce.500ms="if(searchQuery.length >= 2) { fetch('<?php echo APP_URL; ?>/buscar_socios.php?q=' + encodeURIComponent(searchQuery)).then(r => r.json()).then(data => searchResults = data); } else { searchResults = []; }"
                            @focus="searchOpen = true"
                            @click.away="searchOpen = false"
                            placeholder="Buscar socio por nombre, código, email o teléfono..."

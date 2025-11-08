@@ -121,7 +121,7 @@ $pageTitle = 'Socios';
                                     data-membresia="<?php echo $socio['tipo_membresia_id']; ?>">
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <?php if ($socio['foto']): ?>
-                                            <img src="<?php echo '/uploads/photos/' . htmlspecialchars($socio['foto']); ?>" 
+                                            <img src="<?php echo APP_URL . '/uploads/photos/' . htmlspecialchars($socio['foto']); ?>" 
                                                  alt="Foto" class="h-10 w-10 rounded-full object-cover">
                                         <?php else: ?>
                                             <div class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">

@@ -159,9 +159,10 @@ $csrfToken = Auth::generateCsrfToken();
                 <div class="flex items-center space-x-6">
                     <div class="flex-shrink-0">
                         <?php if (!empty($userData['foto']) && file_exists(UPLOAD_PATH . ltrim($userData['foto'], '/'))): ?>
-                            <img src="<?php echo htmlspecialchars($userData['foto']); ?>" 
+                            <img src="<?php echo APP_URL . htmlspecialchars($userData['foto']); ?>" 
                                  alt="Foto de perfil" 
-                                 class="h-24 w-24 rounded-full object-cover border-2 border-gray-300">
+                                 class="h-24 w-24 rounded-full object-cover border-2 border-gray-300 cursor-pointer hover:opacity-80 transition-opacity"
+                                 onclick="openPhotoModal(this.src)">
                         <?php else: ?>
                             <div class="h-24 w-24 rounded-full bg-blue-600 flex items-center justify-center text-white text-3xl font-bold border-2 border-gray-300">
                                 <?php echo strtoupper(substr($userData['nombre'], 0, 1)); ?>
@@ -170,8 +171,9 @@ $csrfToken = Auth::generateCsrfToken();
                     </div>
                     <div class="flex-1">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Foto de Perfil</label>
-                        <input type="file" name="foto" accept="image/jpeg,image/png,image/jpg"
-                               class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                        <input type="file" name="foto" accept="image/jpeg,image/png,image/jpg" id="fotoInput"
+                               class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                               onchange="previewPhoto(this)">
                         <p class="mt-1 text-xs text-gray-500">JPG, PNG o JPEG (máximo 5MB)</p>
                     </div>
                 </div>
@@ -261,5 +263,43 @@ $csrfToken = Auth::generateCsrfToken();
             </div>
         </div>
     </div>
+    
+    <!-- Photo Zoom Modal -->
+    <div id="photoModal" class="hidden fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center" onclick="closePhotoModal()">
+        <div class="relative max-w-4xl max-h-screen p-4">
+            <button onclick="closePhotoModal()" class="absolute top-2 right-2 text-white bg-black bg-opacity-50 rounded-full w-10 h-10 flex items-center justify-center hover:bg-opacity-75">
+                <i class="fas fa-times"></i>
+            </button>
+            <img id="modalPhoto" src="" alt="Foto ampliada" class="max-w-full max-h-screen rounded-lg">
+        </div>
+    </div>
+    
+    <script>
+        function previewPhoto(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.querySelector('img[alt="Foto de perfil"]');
+                    if (img) {
+                        img.src = e.target.result;
+                    } else {
+                        // Create img element if it doesn't exist (when user has no photo)
+                        const container = input.closest('.flex').querySelector('.flex-shrink-0');
+                        container.innerHTML = `<img src="${e.target.result}" alt="Foto de perfil" class="h-24 w-24 rounded-full object-cover border-2 border-gray-300 cursor-pointer hover:opacity-80 transition-opacity" onclick="openPhotoModal(this.src)">`;
+                    }
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+        
+        function openPhotoModal(src) {
+            document.getElementById('modalPhoto').src = src;
+            document.getElementById('photoModal').classList.remove('hidden');
+        }
+        
+        function closePhotoModal() {
+            document.getElementById('photoModal').classList.add('hidden');
+        }
+    </script>
 </body>
 </html>

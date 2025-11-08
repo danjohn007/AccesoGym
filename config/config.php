@@ -13,7 +13,18 @@ define('DB_CHARSET', 'utf8mb4');
 
 // Application Configuration
 define('APP_NAME', 'AccessGYM');
-define('APP_URL', 'http://localhost');
+
+// Auto-detect APP_URL if not in CLI mode
+if (php_sapi_name() !== 'cli') {
+    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    $scriptName = dirname($_SERVER['SCRIPT_NAME']);
+    $baseUrl = $protocol . '://' . $host . ($scriptName !== '/' ? $scriptName : '');
+    define('APP_URL', rtrim($baseUrl, '/'));
+} else {
+    define('APP_URL', 'http://localhost');
+}
+
 define('APP_TIMEZONE', 'America/Mexico_City');
 
 // Security
