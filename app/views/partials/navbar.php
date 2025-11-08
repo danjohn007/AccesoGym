@@ -1,3 +1,6 @@
+<!-- Custom Styles from Configuration -->
+<link rel="stylesheet" href="/custom_styles.php">
+
 <nav class="bg-white shadow-lg fixed top-0 left-0 right-0 z-50" x-data="{ sidebarOpen: false, accountOpen: false }">
     <div class="container mx-auto px-4">
         <div class="flex justify-between items-center py-4">
