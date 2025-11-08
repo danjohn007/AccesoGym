@@ -265,7 +265,7 @@ $csrfToken = Auth::generateCsrfToken();
     </div>
     
     <!-- Photo Zoom Modal -->
-    <div id="photoModal" class="hidden fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center" onclick="closePhotoModal()">
+    <div id="photoModal" class="hidden fixed inset-0 bg-black bg-opacity-75 z-[60] flex items-center justify-center" onclick="closePhotoModal()">
         <div class="relative max-w-4xl max-h-screen p-4">
             <button onclick="closePhotoModal()" class="absolute top-2 right-2 text-white bg-black bg-opacity-50 rounded-full w-10 h-10 flex items-center justify-center hover:bg-opacity-75">
                 <i class="fas fa-times"></i>

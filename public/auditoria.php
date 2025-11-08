@@ -60,6 +60,12 @@ $totalPages = ceil($total / $perPage);
 // Get users for filter
 $usuarios = $conn->query("SELECT id, nombre FROM usuarios_staff ORDER BY nombre")->fetchAll(PDO::FETCH_ASSOC);
 
+// Get branches for SuperAdmin filter
+$sucursales = [];
+if (Auth::isSuperadmin()) {
+    $sucursales = $conn->query("SELECT id, nombre FROM sucursales WHERE activo=1 ORDER BY nombre")->fetchAll(PDO::FETCH_ASSOC);
+}
+
 $pageTitle = 'Auditoría del Sistema';
 ?>
 <!DOCTYPE html>
@@ -85,7 +91,21 @@ $pageTitle = 'Auditoría del Sistema';
         
         <!-- Filters -->
         <div class="bg-white rounded-lg shadow p-6 mb-6">
-            <form method="GET" class="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <form method="GET" class="grid grid-cols-1 md:grid-cols-<?php echo Auth::isSuperadmin() ? '6' : '5'; ?> gap-4">
+                <?php if (Auth::isSuperadmin()): ?>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Sucursal</label>
+                    <select name="sucursal_id" class="w-full px-4 py-2 border rounded-lg">
+                        <option value="">Todas</option>
+                        <?php foreach ($sucursales as $suc): ?>
+                        <option value="<?php echo $suc['id']; ?>" <?php echo $sucursal_id == $suc['id'] ? 'selected' : ''; ?>>
+                            <?php echo htmlspecialchars($suc['nombre']); ?>
+                        </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <?php endif; ?>
+                
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
                     <select name="tipo" class="w-full px-4 py-2 border rounded-lg">
