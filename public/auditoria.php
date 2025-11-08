@@ -11,7 +11,9 @@ $fecha_inicio = $_GET['fecha_inicio'] ?? date('Y-m-d', strtotime('-7 days'));
 $fecha_fin = $_GET['fecha_fin'] ?? date('Y-m-d');
 
 // SuperAdmin can filter by branch, Admin is restricted to their branch
-$sucursal_id = Auth::isSuperadmin() ? ($_GET['sucursal_id'] ?? null) : Auth::sucursalId();
+$sucursal_id = Auth::isSuperadmin() ? ($_GET['sucursal_id'] ?? '') : Auth::sucursalId();
+// Convert empty string to null for consistency
+$sucursal_id = ($sucursal_id === '' || $sucursal_id === '0') ? null : (int)$sucursal_id;
 $usuario_id = $_GET['usuario_id'] ?? '';
 $page = $_GET['page'] ?? 1;
 $perPage = 50;
@@ -28,11 +30,11 @@ if ($tipo) {
 
 if ($usuario_id) {
     $where[] = "usuario_id = ?";
-    $params[] = $usuario_id;
+    $params[] = (int)$usuario_id;
 }
 
 // Filter by branch for non-superadmin users
-if ($sucursal_id) {
+if ($sucursal_id !== null) {
     $where[] = "(sucursal_id = ? OR sucursal_id IS NULL)";
     $params[] = $sucursal_id;
 }

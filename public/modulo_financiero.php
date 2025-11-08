@@ -12,14 +12,23 @@ $sucursal_id = Auth::isSuperadmin() ? ($_GET['sucursal_id'] ?? null) : $user['su
 
 // Calculate financials
 try {
-    // Ingresos (Payments)
+    // Ingresos (Payments + Extra Income)
     $stmt = $conn->prepare("SELECT SUM(monto) as total FROM pagos 
                            WHERE fecha_pago BETWEEN ? AND ? AND estado='completado'
                            " . ($sucursal_id ? "AND sucursal_id = ?" : ""));
     $params = [$fecha_inicio . ' 00:00:00', $fecha_fin . ' 23:59:59'];
     if ($sucursal_id) $params[] = $sucursal_id;
     $stmt->execute($params);
-    $ingresos = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?? 0;
+    $ingresos_pagos = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?? 0;
+    
+    // Add extra income
+    $stmt = $conn->prepare("SELECT SUM(monto) as total FROM ingresos_extra 
+                           WHERE fecha_ingreso BETWEEN ? AND ?
+                           " . ($sucursal_id ? "AND sucursal_id = ?" : ""));
+    $stmt->execute($params);
+    $ingresos_extra = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?? 0;
+    
+    $ingresos = $ingresos_pagos + $ingresos_extra;
     
     // Gastos (Expenses)
     $stmt = $conn->prepare("SELECT SUM(monto) as total FROM gastos 
@@ -38,6 +47,17 @@ try {
                            GROUP BY metodo_pago");
     $stmt->execute($params);
     $pagosPorMetodo = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    // Add extra income by category to the chart
+    $stmt = $conn->prepare("SELECT categoria as metodo_pago, SUM(monto) as total, COUNT(*) as cantidad 
+                           FROM ingresos_extra WHERE fecha_ingreso BETWEEN ? AND ?
+                           " . ($sucursal_id ? "AND sucursal_id = ?" : "") . "
+                           GROUP BY categoria");
+    $stmt->execute($params);
+    $ingresosPorCategoria = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    // Merge both arrays
+    $pagosPorMetodo = array_merge($pagosPorMetodo, $ingresosPorCategoria);
     
     // Expenses by category
     $stmt = $conn->prepare("SELECT categoria, SUM(monto) as total, COUNT(*) as cantidad 
@@ -241,7 +261,7 @@ $pageTitle = 'Módulo Financiero';
         <!-- Charts -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div class="bg-white rounded-lg shadow p-6">
-                <h3 class="text-lg font-semibold text-gray-900 mb-4">Ingresos por Método de Pago</h3>
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Ingresos por Método/Categoría</h3>
                 <canvas id="pagosPorMetodoChart"></canvas>
             </div>
             
