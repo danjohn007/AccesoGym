@@ -11,11 +11,11 @@ $pagoModel = new Pago();
 $socioModel = new Socio();
 
 $user = Auth::user();
-$sucursalId = Auth::isSuperadmin() ? null : Auth::sucursalId();
 
-// Get date range from filters
+// Get date range and branch filter
 $fecha_inicio = $_GET['fecha_inicio'] ?? date('Y-m-01'); // First day of current month
 $fecha_fin = $_GET['fecha_fin'] ?? date('Y-m-d'); // Today
+$sucursalId = Auth::isSuperadmin() ? ($_GET['sucursal_id'] ?? null) : Auth::sucursalId();
 
 // Get statistics for the period
 $totalIngresos = $pagoModel->getTotalIncome($sucursalId, $fecha_inicio, $fecha_fin);
@@ -27,6 +27,14 @@ $paymentsByMethod = $pagoModel->getByMethod($sucursalId, $fecha_inicio, $fecha_f
 // Get socios stats
 $totalSociosActivos = $socioModel->getActiveCount($sucursalId);
 $sociosVenciendo = $socioModel->getExpiringSoon(7, $sucursalId);
+
+// Load branches for SuperAdmin
+$sucursales = [];
+if (Auth::isSuperadmin()) {
+    require_once __DIR__ . '/../app/models/Sucursal.php';
+    $sucursalModel = new Sucursal();
+    $sucursales = $sucursalModel->getActive();
+}
 
 $pageTitle = 'Reportes';
 ?>
@@ -51,15 +59,28 @@ $pageTitle = 'Reportes';
             <p class="text-gray-600">Análisis del desempeño del gimnasio</p>
         </div>
         
-        <!-- Date Filter -->
+        <!-- Filters -->
         <div class="bg-white rounded-lg shadow p-6 mb-6">
-            <form method="GET" class="flex gap-4 items-end">
-                <div class="flex-1">
+            <form method="GET" class="flex gap-4 items-end flex-wrap">
+                <?php if (Auth::isSuperadmin()): ?>
+                <div class="flex-1 min-w-[200px]">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Sucursal</label>
+                    <select name="sucursal_id" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Todas las sucursales</option>
+                        <?php foreach ($sucursales as $suc): ?>
+                            <option value="<?php echo $suc['id']; ?>" <?php echo $sucursalId == $suc['id'] ? 'selected' : ''; ?>>
+                                <?php echo htmlspecialchars($suc['nombre']); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <?php endif; ?>
+                <div class="flex-1 min-w-[200px]">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Fecha Inicio</label>
                     <input type="date" name="fecha_inicio" value="<?php echo $fecha_inicio; ?>"
                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                 </div>
-                <div class="flex-1">
+                <div class="flex-1 min-w-[200px]">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Fecha Fin</label>
                     <input type="date" name="fecha_fin" value="<?php echo $fecha_fin; ?>"
                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">

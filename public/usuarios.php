@@ -17,25 +17,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['csrf_token'])) {
                 $nombre = sanitize($_POST['nombre']);
                 $email = sanitize($_POST['email']);
                 $telefono = sanitize($_POST['telefono'] ?? '');
+                $telefono_emergencia = sanitize($_POST['telefono_emergencia'] ?? '');
                 $rol = $_POST['rol'];
                 $sucursal_id = $_POST['sucursal_id'];
                 $activo = isset($_POST['activo']) ? 1 : 0;
                 
                 if ($id) {
-                    $sql = "UPDATE usuarios_staff SET nombre=?, email=?, telefono=?, rol=?, sucursal_id=?, activo=? WHERE id=?";
-                    $params = [$nombre, $email, $telefono, $rol, $sucursal_id, $activo, $id];
+                    $sql = "UPDATE usuarios_staff SET nombre=?, email=?, telefono=?, telefono_emergencia=?, rol=?, sucursal_id=?, activo=? WHERE id=?";
+                    $params = [$nombre, $email, $telefono, $telefono_emergencia, $rol, $sucursal_id, $activo, $id];
                     if (!empty($_POST['password'])) {
                         $password = password_hash($_POST['password'], PASSWORD_BCRYPT, ['cost' => PASSWORD_COST]);
-                        $sql = "UPDATE usuarios_staff SET nombre=?, email=?, telefono=?, rol=?, sucursal_id=?, activo=?, password=? WHERE id=?";
-                        $params = [$nombre, $email, $telefono, $rol, $sucursal_id, $activo, $password, $id];
+                        $sql = "UPDATE usuarios_staff SET nombre=?, email=?, telefono=?, telefono_emergencia=?, rol=?, sucursal_id=?, activo=?, password=? WHERE id=?";
+                        $params = [$nombre, $email, $telefono, $telefono_emergencia, $rol, $sucursal_id, $activo, $password, $id];
                     }
                     $stmt = $conn->prepare($sql);
                     $stmt->execute($params);
                     $message = 'Usuario actualizado correctamente';
                 } else {
                     $password = password_hash($_POST['password'], PASSWORD_BCRYPT, ['cost' => PASSWORD_COST]);
-                    $stmt = $conn->prepare("INSERT INTO usuarios_staff (nombre, email, telefono, password, rol, sucursal_id, activo) VALUES (?, ?, ?, ?, ?, ?, ?)");
-                    $stmt->execute([$nombre, $email, $telefono, $password, $rol, $sucursal_id, $activo]);
+                    $stmt = $conn->prepare("INSERT INTO usuarios_staff (nombre, email, telefono, telefono_emergencia, password, rol, sucursal_id, activo) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+                    $stmt->execute([$nombre, $email, $telefono, $telefono_emergencia, $password, $rol, $sucursal_id, $activo]);
                     $message = 'Usuario creado correctamente';
                 }
                 $success = true;
@@ -51,12 +52,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['csrf_token'])) {
 
 $usuarios = [];
 $sucursales = [];
+
+// Get filter for branch
+$filterSucursalId = Auth::isSuperadmin() ? ($_GET['sucursal_id'] ?? null) : Auth::sucursalId();
+
 if ($action === 'list') {
-    // For SuperAdmin: see all users
+    // For SuperAdmin: see all users or filtered by branch
     // For Admin: see only users from their branch
     if (Auth::isSuperadmin()) {
-        $stmt = $conn->prepare("SELECT u.*, s.nombre as sucursal_nombre FROM usuarios_staff u LEFT JOIN sucursales s ON u.sucursal_id=s.id ORDER BY u.created_at DESC");
-        $stmt->execute();
+        if ($filterSucursalId) {
+            $stmt = $conn->prepare("SELECT u.*, s.nombre as sucursal_nombre FROM usuarios_staff u LEFT JOIN sucursales s ON u.sucursal_id=s.id WHERE u.sucursal_id = ? ORDER BY u.created_at DESC");
+            $stmt->execute([$filterSucursalId]);
+        } else {
+            $stmt = $conn->prepare("SELECT u.*, s.nombre as sucursal_nombre FROM usuarios_staff u LEFT JOIN sucursales s ON u.sucursal_id=s.id ORDER BY u.created_at DESC");
+            $stmt->execute();
+        }
     } else {
         $stmt = $conn->prepare("SELECT u.*, s.nombre as sucursal_nombre FROM usuarios_staff u LEFT JOIN sucursales s ON u.sucursal_id=s.id WHERE u.sucursal_id = ? ORDER BY u.created_at DESC");
         $stmt->execute([Auth::sucursalId()]);
@@ -121,6 +131,33 @@ $csrfToken = Auth::generateCsrfToken();
         <?php endif; ?>
         
         <?php if ($action === 'list'): ?>
+        
+        <?php if (Auth::isSuperadmin()): ?>
+        <!-- Branch Filter for SuperAdmin -->
+        <div class="bg-white rounded-lg shadow p-4 mb-6">
+            <form method="GET" class="flex gap-4 items-end">
+                <input type="hidden" name="action" value="list">
+                <div class="flex-1">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Filtrar por Sucursal</label>
+                    <select name="sucursal_id" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Todas las sucursales</option>
+                        <?php foreach ($sucursales as $suc): ?>
+                            <option value="<?php echo $suc['id']; ?>" <?php echo $filterSucursalId == $suc['id'] ? 'selected' : ''; ?>>
+                                <?php echo htmlspecialchars($suc['nombre']); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded">
+                    <i class="fas fa-filter mr-2"></i>Filtrar
+                </button>
+                <a href="usuarios.php?action=list" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">
+                    <i class="fas fa-times"></i>
+                </a>
+            </form>
+        </div>
+        <?php endif; ?>
+        
         <div class="bg-white rounded-lg shadow overflow-hidden">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
@@ -185,9 +222,19 @@ $csrfToken = Auth::generateCsrfToken();
                     </div>
                     
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Teléfono</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">WhatsApp</label>
                         <input type="tel" name="telefono" value="<?php echo htmlspecialchars($usuario['telefono'] ?? ''); ?>"
+                               placeholder="5551234567" maxlength="10" pattern="[0-9]{10}"
                                class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <p class="mt-1 text-xs text-gray-500">10 dígitos sin espacios</p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Teléfono de Emergencia</label>
+                        <input type="tel" name="telefono_emergencia" value="<?php echo htmlspecialchars($usuario['telefono_emergencia'] ?? ''); ?>"
+                               placeholder="5559876543" maxlength="10" pattern="[0-9]{10}"
+                               class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <p class="mt-1 text-xs text-gray-500">10 dígitos sin espacios</p>
                     </div>
                     
                     <div>

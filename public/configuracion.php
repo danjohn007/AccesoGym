@@ -57,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['csrf_token'])) {
                     
                     if (strpos($key, 'email_') === 0) $grupo = 'email';
                     if (strpos($key, 'telefono_') === 0 || strpos($key, 'horario_') === 0 || $key === 'dias_operacion') $grupo = 'contacto';
-                    if (strpos($key, 'color_') === 0) $grupo = 'estilos';
+                    if (strpos($key, 'color_') === 0 || $key === 'fuente_principal' || $key === 'border_radius') $grupo = 'estilos';
                     if (strpos($key, 'paypal_') === 0) $grupo = 'pagos';
                     if (strpos($key, 'qr_') === 0) $grupo = 'integracion';
                     if (in_array($key, ['mantenimiento_modo', 'registros_por_pagina', 'zona_horaria'])) $grupo = 'sistema';

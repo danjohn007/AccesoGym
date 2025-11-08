@@ -99,7 +99,7 @@ $pageTitle = 'Detalle del Socio';
                     <!-- Photo -->
                     <div class="flex justify-center mb-4">
                         <?php if ($socio['foto']): ?>
-                            <img src="<?php echo '/uploads/photos/' . htmlspecialchars($socio['foto']); ?>" 
+                            <img src="<?php echo APP_URL . '/uploads/photos/' . htmlspecialchars($socio['foto']); ?>" 
                                  alt="Foto" class="h-32 w-32 rounded-full object-cover border-4 border-blue-500">
                         <?php else: ?>
                             <div class="h-32 w-32 rounded-full bg-gray-200 flex items-center justify-center border-4 border-gray-300">
@@ -118,7 +118,7 @@ $pageTitle = 'Detalle del Socio';
                     <div class="text-center mb-4">
                         <p class="text-sm font-medium text-gray-700 mb-2">Código QR</p>
                         <?php if ($socio['qr_code'] && file_exists(UPLOAD_PATH . 'photos/' . $socio['qr_code'])): ?>
-                            <img src="<?php echo '/uploads/photos/' . htmlspecialchars($socio['qr_code']); ?>" 
+                            <img src="<?php echo APP_URL . '/uploads/photos/' . htmlspecialchars($socio['qr_code']); ?>" 
                                  alt="QR Code" class="mx-auto border-2 border-gray-300 p-2 rounded">
                         <?php else: ?>
                             <img src="<?php echo generateQrCode($socio['codigo']); ?>" 
