@@ -57,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $oldFile = basename($userData['foto']);
                     deleteFile($oldFile, 'staff');
                 }
-                $fotoPath = '/uploads/staff/' . $uploadResult['filename'];
+                $fotoPath = $uploadResult['filename'];
             } else {
                 $errors[] = $uploadResult['message'];
             }
@@ -81,13 +81,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Update session
             $_SESSION['user_name'] = $nombre;
             $_SESSION['user_email'] = $email;
-            if ($fotoPath) {
-                $_SESSION['user_foto'] = $fotoPath;
-            }
+            $_SESSION['user_foto'] = $fotoPath;
             
             logEvent('modificacion', "Perfil actualizado", $userId, null, $user['sucursal_id']);
             
             $success = true;
+            // Reload user data to reflect changes
             $userData = $usuarioModel->find($userId);
         }
     }
@@ -146,8 +145,8 @@ $csrfToken = Auth::generateCsrfToken();
                 <!-- Profile Photo -->
                 <div class="flex items-center space-x-6">
                     <div class="flex-shrink-0">
-                        <?php if (!empty($userData['foto']) && file_exists(UPLOAD_PATH . ltrim($userData['foto'], '/'))): ?>
-                            <img src="<?php echo APP_URL . htmlspecialchars($userData['foto']); ?>" 
+                        <?php if (!empty($userData['foto']) && file_exists(UPLOAD_PATH . 'staff/' . $userData['foto'])): ?>
+                            <img src="<?php echo APP_URL . '/uploads/staff/' . htmlspecialchars($userData['foto']); ?>" 
                                  alt="Foto de perfil" 
                                  class="h-24 w-24 rounded-full object-cover border-2 border-gray-300 cursor-pointer hover:opacity-80 transition-opacity"
                                  onclick="openPhotoModal(this.src)">
