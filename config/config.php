@@ -36,9 +36,11 @@ define('SMTP_FROM_EMAIL', 'noreply@accessgym.com');
 define('SMTP_FROM_NAME', 'AccessGYM');
 
 // Shelly Cloud API
-define('SHELLY_ENABLED', false);
-define('SHELLY_API_URL', 'https://shelly-cloud-api.com/device/status');
-define('SHELLY_API_KEY', '');
+define('SHELLY_ENABLED', true);
+define('SHELLY_SERVER_URL', 'https://shelly-208-eu.shelly.cloud');
+define('SHELLY_AUTH_TOKEN', 'MzgwNjRhdWlk0574CFA7E6D9F34D8F306EB51648C8DA5D79A03333414C2FBF51CFA88A780F9867246CE317003A74');
+define('SHELLY_API_URL', 'https://shelly-208-eu.shelly.cloud/device/status'); // Legacy support
+define('SHELLY_API_KEY', 'MzgwNjRhdWlk0574CFA7E6D9F34D8F306EB51648C8DA5D79A03333414C2FBF51CFA88A780F9867246CE317003A74'); // Legacy support
 
 // WhatsApp Business API
 define('WHATSAPP_ENABLED', false);

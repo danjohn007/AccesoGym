@@ -178,4 +178,29 @@ class Socio extends Model {
         
         return ['allowed' => true, 'socio' => $socio];
     }
+    
+    /**
+     * Search members by name, code, email, or phone
+     */
+    public function search($query, $sucursalId = null) {
+        $searchTerm = "%{$query}%";
+        
+        $sql = "SELECT s.id, s.codigo, s.nombre, s.apellido, s.email, s.telefono, s.estado, s.foto,
+                       tm.nombre as tipo_membresia_nombre
+                FROM socios s
+                LEFT JOIN tipos_membresia tm ON s.tipo_membresia_id = tm.id
+                WHERE (s.nombre LIKE ? OR s.apellido LIKE ? OR s.codigo LIKE ? OR s.email LIKE ? OR s.telefono LIKE ?)";
+        
+        $params = [$searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm];
+        
+        if ($sucursalId) {
+            $sql .= " AND s.sucursal_id = ?";
+            $params[] = $sucursalId;
+        }
+        
+        $sql .= " ORDER BY s.nombre, s.apellido LIMIT 20";
+        
+        $stmt = $this->query($sql, $params);
+        return $stmt->fetchAll();
+    }
 }
