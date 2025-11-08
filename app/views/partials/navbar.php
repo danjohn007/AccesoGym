@@ -27,7 +27,7 @@
                     
                     <!-- Search Results Dropdown -->
                     <div x-show="searchOpen && searchResults.length > 0" 
-                         class="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-lg border border-gray-200 max-h-96 overflow-y-auto z-50"
+                         class="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-lg border border-gray-200 max-h-96 overflow-y-auto z-40"
                          style="display: none;">
                         <template x-for="result in searchResults" :key="result.id">
                             <a :href="'socio_detalle.php?id=' + result.id" 
@@ -81,7 +81,7 @@
                      x-transition:leave="transition ease-in duration-75"
                      x-transition:leave-start="opacity-100 scale-100"
                      x-transition:leave-end="opacity-0 scale-95"
-                     class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
+                     class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-40"
                      style="display: none;">
                     <div class="px-4 py-2 border-b border-gray-200">
                         <p class="text-sm font-medium text-gray-900"><?php echo htmlspecialchars($user['nombre'] ?? 'Usuario'); ?></p>
@@ -206,6 +206,16 @@
                 <span class="font-medium">Módulo Financiero</span>
             </a>
             
+            <a href="registro_ingreso.php" class="flex items-center px-8 py-2 text-sm text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                <i class="fas fa-plus-circle w-4 mr-3 ml-2 text-green-600"></i>
+                <span>Registrar Ingreso</span>
+            </a>
+            
+            <a href="registro_egreso.php" class="flex items-center px-8 py-2 text-sm text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                <i class="fas fa-minus-circle w-4 mr-3 ml-2 text-red-600"></i>
+                <span>Registrar Egreso</span>
+            </a>
+            
             <a href="categorias_financieras.php" class="flex items-center px-8 py-2 text-sm text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-colors">
                 <i class="fas fa-tags w-4 mr-3 ml-2"></i>
                 <span>Categorías</span>
@@ -316,6 +326,22 @@
             <a href="membresias.php" class="flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
                 <i class="fas fa-id-card w-5 mr-3"></i>
                 <span class="font-medium">Membresías</span>
+            </a>
+            
+            <a href="modulo_financiero.php" class="flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                <i class="fas fa-chart-line w-5 mr-3"></i>
+                <span class="font-medium">Módulo Financiero</span>
+            </a>
+            
+            <a href="registro_ingreso.php" class="flex items-center px-8 py-2 text-sm text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                <i class="fas fa-plus-circle w-4 mr-3 ml-2 text-green-600"></i>
+                <span>Registrar Ingreso</span>
+            </a>
+            
+            <a href="registro_egreso.php" class="flex items-center px-8 py-2 text-sm text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                <i class="fas fa-minus-circle w-4 mr-3 ml-2 text-red-600"></i>
+                <span>Registrar Egreso</span>
+            </a>
             
             <a href="categorias_financieras.php" class="flex items-center px-8 py-2 text-sm text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-colors">
                 <i class="fas fa-tags w-4 mr-3 ml-2"></i>
@@ -325,12 +351,6 @@
             <a href="activos_inventario.php" class="flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
                 <i class="fas fa-boxes w-5 mr-3"></i>
                 <span class="font-medium">Activos e Inventario</span>
-            </a>
-            </a>
-            
-            <a href="modulo_financiero.php" class="flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
-                <i class="fas fa-chart-line w-5 mr-3"></i>
-                <span class="font-medium">Módulo Financiero</span>
             </a>
             
             <a href="usuarios.php" class="flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">

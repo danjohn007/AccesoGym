@@ -50,31 +50,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Handle photo upload
         $fotoPath = $userData['foto'] ?? null;
         if (isset($_FILES['foto']) && $_FILES['foto']['error'] === UPLOAD_ERR_OK) {
-            $allowedTypes = ALLOWED_IMAGE_TYPES;
-            $maxSize = MAX_FILE_SIZE;
-            
-            if (in_array($_FILES['foto']['type'], $allowedTypes) && $_FILES['foto']['size'] <= $maxSize) {
-                $uploadDir = UPLOAD_PATH . 'staff/';
-                if (!is_dir($uploadDir)) {
-                    mkdir($uploadDir, 0755, true);
+            $uploadResult = uploadFile($_FILES['foto'], 'staff');
+            if ($uploadResult['success']) {
+                // Delete old photo if exists
+                if (!empty($userData['foto'])) {
+                    $oldFile = basename($userData['foto']);
+                    deleteFile($oldFile, 'staff');
                 }
-                
-                $extension = pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION);
-                $filename = 'staff_' . $userId . '_' . time() . '.' . $extension;
-                $destination = $uploadDir . $filename;
-                
-                if (move_uploaded_file($_FILES['foto']['tmp_name'], $destination)) {
-                    $fotoPath = '/uploads/staff/' . $filename;
-                    
-                    // Delete old photo if exists
-                    if (!empty($userData['foto']) && file_exists(UPLOAD_PATH . ltrim($userData['foto'], '/'))) {
-                        unlink(UPLOAD_PATH . ltrim($userData['foto'], '/'));
-                    }
-                } else {
-                    $errors[] = 'Error al subir la foto';
-                }
+                $fotoPath = '/uploads/staff/' . $uploadResult['filename'];
             } else {
-                $errors[] = 'Foto inválida (solo JPG/PNG, máximo 5MB)';
+                $errors[] = $uploadResult['message'];
             }
         }
         
@@ -96,6 +81,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Update session
             $_SESSION['user_name'] = $nombre;
             $_SESSION['user_email'] = $email;
+            if ($fotoPath) {
+                $_SESSION['user_foto'] = $fotoPath;
+            }
             
             logEvent('modificacion', "Perfil actualizado", $userId, null, $user['sucursal_id']);
             
@@ -265,7 +253,7 @@ $csrfToken = Auth::generateCsrfToken();
     </div>
     
     <!-- Photo Zoom Modal -->
-    <div id="photoModal" class="hidden fixed inset-0 bg-black bg-opacity-75 z-[60] flex items-center justify-center" onclick="closePhotoModal()">
+    <div id="photoModal" class="hidden fixed inset-0 bg-black bg-opacity-75 z-[100] flex items-center justify-center" onclick="closePhotoModal()">
         <div class="relative max-w-4xl max-h-screen p-4">
             <button onclick="closePhotoModal()" class="absolute top-2 right-2 text-white bg-black bg-opacity-50 rounded-full w-10 h-10 flex items-center justify-center hover:bg-opacity-75">
                 <i class="fas fa-times"></i>

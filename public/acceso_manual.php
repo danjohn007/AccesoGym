@@ -183,7 +183,7 @@ $pageTitle = 'Acceso Manual';
                         <!-- Photo -->
                         <div class="flex-shrink-0">
                             <?php if ($socio['foto']): ?>
-                                <img src="<?php echo '/uploads/photos/' . htmlspecialchars($socio['foto']); ?>" 
+                                <img src="<?php echo APP_URL . '/uploads/photos/' . htmlspecialchars($socio['foto']); ?>" 
                                      alt="Foto" class="h-32 w-32 rounded-lg object-cover border-4 border-blue-500">
                             <?php else: ?>
                                 <div class="h-32 w-32 rounded-lg bg-gray-200 flex items-center justify-center border-4 border-gray-300">

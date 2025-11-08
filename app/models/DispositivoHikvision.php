@@ -1,13 +1,13 @@
 <?php
 /**
- * DispositivoShelly Model
- * Handles Shelly IoT devices
+ * DispositivoHikvision Model
+ * Handles Hikvision devices with API integration
  */
 
 require_once __DIR__ . '/Model.php';
 
-class DispositivoShelly extends Model {
-    protected $table = 'dispositivos_shelly';
+class DispositivoHikvision extends Model {
+    protected $table = 'dispositivos_hikvision';
     
     /**
      * Get devices by branch
@@ -48,7 +48,7 @@ class DispositivoShelly extends Model {
      */
     public function getAllWithSucursal($sucursalId = null, $includeDisabled = false) {
         $sql = "SELECT d.*, s.nombre as sucursal_nombre
-                FROM dispositivos_shelly d
+                FROM dispositivos_hikvision d
                 INNER JOIN sucursales s ON d.sucursal_id = s.id";
         
         $where = [];
@@ -78,7 +78,7 @@ class DispositivoShelly extends Model {
      */
     public function getDisabled($sucursalId = null) {
         $sql = "SELECT d.*, s.nombre as sucursal_nombre
-                FROM dispositivos_shelly d
+                FROM dispositivos_hikvision d
                 INNER JOIN sucursales s ON d.sucursal_id = s.id
                 WHERE d.activo = 0";
         

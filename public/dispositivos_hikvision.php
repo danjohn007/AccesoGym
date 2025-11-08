@@ -2,13 +2,13 @@
 require_once 'bootstrap.php';
 Auth::requireRole(['superadmin', 'admin']);
 
-require_once __DIR__ . '/../app/models/DispositivoShelly.php';
+require_once __DIR__ . '/../app/models/DispositivoHikvision.php';
 require_once __DIR__ . '/../app/models/Sucursal.php';
-require_once __DIR__ . '/../app/services/ShellyService.php';
+require_once __DIR__ . '/../app/services/HikvisionService.php';
 
-$dispositivoModel = new DispositivoShelly();
+$dispositivoModel = new DispositivoHikvision();
 $sucursalModel = new Sucursal();
-$shellyService = new ShellyService();
+$hikvisionService = new HikvisionService();
 
 $user = Auth::user();
 $sucursalId = Auth::isSuperadmin() ? null : Auth::sucursalId();
@@ -19,13 +19,19 @@ if (isset($_POST['test_door']) && isset($_POST['device_id'])) {
     $dispositivo = $dispositivoModel->find($deviceId);
     
     if ($dispositivo && (Auth::isSuperadmin() || $dispositivo['sucursal_id'] == $sucursalId)) {
-        $result = $shellyService->openDoor($dispositivo['device_id'], $dispositivo['tiempo_apertura']);
+        $result = $hikvisionService->openDoor(
+            $dispositivo['ip'],
+            $dispositivo['puerto'],
+            $dispositivo['usuario'],
+            $dispositivo['password'],
+            $dispositivo['numero_puerta']
+        );
         
         if ($result['success']) {
             $message = 'Puerta abierta correctamente';
             $messageType = 'success';
             
-            logEvent('dispositivo', "Prueba de apertura: {$dispositivo['nombre']}", Auth::id(), null, $dispositivo['sucursal_id']);
+            logEvent('dispositivo', "Prueba de apertura HikVision: {$dispositivo['nombre']}", Auth::id(), null, $dispositivo['sucursal_id']);
         } else {
             $message = 'Error al abrir puerta: ' . ($result['message'] ?? 'Error desconocido');
             $messageType = 'error';
@@ -35,7 +41,7 @@ if (isset($_POST['test_door']) && isset($_POST['device_id'])) {
 
 // Handle status update
 if (isset($_POST['update_status'])) {
-    $results = $shellyService->updateAllDeviceStatuses();
+    $results = $hikvisionService->updateAllDeviceStatuses();
     $message = 'Estados actualizados: ' . count($results) . ' dispositivos';
     $messageType = 'success';
 }
@@ -43,7 +49,7 @@ if (isset($_POST['update_status'])) {
 $dispositivos = $dispositivoModel->getAllWithSucursal($sucursalId);
 $sucursales = Auth::isSuperadmin() ? $sucursalModel->getActive() : [];
 
-$pageTitle = 'Dispositivos';
+$pageTitle = 'Dispositivos HikVision';
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -60,66 +66,28 @@ $pageTitle = 'Dispositivos';
     
     <div class="container mx-auto px-4 py-8">
         <!-- Header -->
-        <div class="mb-8">
-            <div class="flex justify-between items-center mb-4">
-                <div>
-                    <h1 class="text-3xl font-bold text-gray-900">Dispositivos</h1>
-                    <p class="text-gray-600">Gestión de dispositivos de control de acceso</p>
-                </div>
-                <div class="space-x-2">
-                    <form method="POST" class="inline">
-                        <button type="submit" name="update_status" 
-                                class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded inline-flex items-center">
-                            <i class="fas fa-sync-alt mr-2"></i>
-                            Actualizar Estados
-                        </button>
-                    </form>
-                    <a href="dispositivo_form.php" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-flex items-center">
-                        <i class="fas fa-plus mr-2"></i>
-                        Nuevo Dispositivo Shelly
-                    </a>
-                </div>
+        <div class="mb-8 flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">Dispositivos HikVision</h1>
+                <p class="text-gray-600">Gestión de dispositivos de control de acceso HikVision</p>
             </div>
-            
-            <!-- Quick Links -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <a href="dispositivos_hikvision.php" class="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg shadow p-4 hover:from-blue-700 hover:to-blue-800 transition">
-                    <div class="flex items-center">
-                        <i class="fas fa-video text-3xl mr-4"></i>
-                        <div>
-                            <h3 class="text-lg font-semibold">Dispositivos HikVision</h3>
-                            <p class="text-sm text-blue-100">Gestión de control de acceso HikVision</p>
-                        </div>
-                    </div>
+            <div class="space-x-2">
+                <a href="dispositivos.php" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded inline-flex items-center">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    Volver a Dispositivos
                 </a>
-                
-                <a href="dispositivos_inhabilitados.php" class="bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg shadow p-4 hover:from-orange-600 hover:to-orange-700 transition">
-                    <div class="flex items-center">
-                        <i class="fas fa-ban text-3xl mr-4"></i>
-                        <div>
-                            <h3 class="text-lg font-semibold">Dispositivos Inhabilitados</h3>
-                            <p class="text-sm text-orange-100">Ver y habilitar dispositivos desactivados</p>
-                        </div>
-                    </div>
-                </a>
-                
-                <a href="dispositivo_form.php" class="bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg shadow p-4 hover:from-green-600 hover:to-green-700 transition">
-                    <div class="flex items-center">
-                        <i class="fas fa-plus-circle text-3xl mr-4"></i>
-                        <div>
-                            <h3 class="text-lg font-semibold">Agregar Dispositivo</h3>
-                            <p class="text-sm text-green-100">Registrar nuevo dispositivo Shelly</p>
-                        </div>
-                    </div>
+                <form method="POST" class="inline">
+                    <button type="submit" name="update_status" 
+                            class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded inline-flex items-center">
+                        <i class="fas fa-sync-alt mr-2"></i>
+                        Actualizar Estados
+                    </button>
+                </form>
+                <a href="dispositivo_hikvision_form.php" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-flex items-center">
+                    <i class="fas fa-plus mr-2"></i>
+                    Nuevo Dispositivo
                 </a>
             </div>
-        </div>
-        
-        <!-- Shelly Devices Section -->
-        <div class="mb-4">
-            <h2 class="text-xl font-bold text-gray-900">
-                <i class="fas fa-wifi text-blue-600 mr-2"></i>Dispositivos Shelly
-            </h2>
         </div>
         
         <!-- Messages -->
@@ -142,8 +110,11 @@ $pageTitle = 'Dispositivos';
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <?php if (empty($dispositivos)): ?>
                 <div class="col-span-full bg-white rounded-lg shadow p-8 text-center text-gray-500">
-                    <i class="fas fa-wifi text-4xl mb-4"></i>
-                    <p>No hay dispositivos registrados</p>
+                    <i class="fas fa-video text-4xl mb-4"></i>
+                    <p>No hay dispositivos HikVision registrados</p>
+                    <a href="dispositivo_hikvision_form.php" class="mt-4 inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                        Agregar primer dispositivo
+                    </a>
                 </div>
             <?php else: ?>
                 <?php foreach ($dispositivos as $dispositivo): ?>
@@ -158,8 +129,8 @@ $pageTitle = 'Dispositivos';
                             
                             <div class="space-y-2 mb-4">
                                 <div class="flex items-center text-sm text-gray-600">
-                                    <i class="fas fa-fingerprint w-5 mr-2"></i>
-                                    <span class="font-mono text-xs"><?php echo htmlspecialchars($dispositivo['device_id']); ?></span>
+                                    <i class="fas fa-network-wired w-5 mr-2"></i>
+                                    <span class="font-mono text-xs"><?php echo htmlspecialchars($dispositivo['ip']); ?>:<?php echo htmlspecialchars($dispositivo['puerto']); ?></span>
                                 </div>
                                 <div class="flex items-center text-sm text-gray-600">
                                     <i class="fas fa-building w-5 mr-2"></i>
@@ -170,8 +141,8 @@ $pageTitle = 'Dispositivos';
                                     <?php echo htmlspecialchars($dispositivo['ubicacion'] ?: 'No especificada'); ?>
                                 </div>
                                 <div class="flex items-center text-sm text-gray-600">
-                                    <i class="fas fa-clock w-5 mr-2"></i>
-                                    Apertura: <?php echo $dispositivo['tiempo_apertura']; ?>s
+                                    <i class="fas fa-door-open w-5 mr-2"></i>
+                                    Puerta #<?php echo $dispositivo['numero_puerta']; ?>
                                 </div>
                                 <?php if ($dispositivo['ultima_conexion']): ?>
                                 <div class="flex items-center text-sm text-gray-600">
@@ -190,7 +161,7 @@ $pageTitle = 'Dispositivos';
                                         <i class="fas fa-door-open mr-1"></i>Probar
                                     </button>
                                 </form>
-                                <a href="dispositivo_form.php?id=<?php echo $dispositivo['id']; ?>" 
+                                <a href="dispositivo_hikvision_form.php?id=<?php echo $dispositivo['id']; ?>" 
                                    class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-center text-sm">
                                     <i class="fas fa-edit mr-1"></i>Editar
                                 </a>
@@ -208,10 +179,10 @@ $pageTitle = 'Dispositivos';
                     <i class="fas fa-info-circle text-blue-400"></i>
                 </div>
                 <div class="ml-3">
-                    <h3 class="text-sm font-medium text-blue-800">Integración con Shelly Cloud</h3>
+                    <h3 class="text-sm font-medium text-blue-800">Integración con HikVision ISAPI</h3>
                     <div class="mt-2 text-sm text-blue-700">
-                        <p>Los dispositivos Shelly permiten el control remoto de puertas magnéticas.</p>
-                        <p class="mt-1">Configure los Device IDs desde la consola de Shelly Cloud y asegúrese de que la API Key esté configurada correctamente.</p>
+                        <p>Los dispositivos HikVision permiten el control remoto de puertas mediante la API oficial ISAPI.</p>
+                        <p class="mt-1">Configure la dirección IP, puerto, usuario y contraseña del dispositivo para su funcionamiento.</p>
                     </div>
                 </div>
             </div>
