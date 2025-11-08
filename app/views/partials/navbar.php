@@ -27,7 +27,7 @@
                     
                     <!-- Search Results Dropdown -->
                     <div x-show="searchOpen && searchResults.length > 0" 
-                         class="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-lg border border-gray-200 max-h-96 overflow-y-auto z-50"
+                         class="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-lg border border-gray-200 max-h-96 overflow-y-auto z-40"
                          style="display: none;">
                         <template x-for="result in searchResults" :key="result.id">
                             <a :href="'socio_detalle.php?id=' + result.id" 
@@ -81,7 +81,7 @@
                      x-transition:leave="transition ease-in duration-75"
                      x-transition:leave-start="opacity-100 scale-100"
                      x-transition:leave-end="opacity-0 scale-95"
-                     class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
+                     class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-40"
                      style="display: none;">
                     <div class="px-4 py-2 border-b border-gray-200">
                         <p class="text-sm font-medium text-gray-900"><?php echo htmlspecialchars($user['nombre'] ?? 'Usuario'); ?></p>
