@@ -1,20 +1,35 @@
--- AccessGYM Database Update Script
+-- AccessGYM Database Update Script (compatibilidad con MySQL < 8.0.16)
 -- November 2024 - Complete System Enhancement
 -- Description: Updates database schema to support new features and improvements
 
 -- =============================================================================
--- 1. Add telefono_emergencia to usuarios_staff table
+-- Nota: algunas versiones de MySQL no soportan "ADD COLUMN IF NOT EXISTS" ni
+-- "CREATE INDEX IF NOT EXISTS". Este script usa comprobaciones en
+-- information_schema y sentencias preparadas para evitar errores si ya existen.
 -- =============================================================================
-ALTER TABLE usuarios_staff 
-ADD COLUMN IF NOT EXISTS telefono_emergencia VARCHAR(20) AFTER telefono,
-ADD COLUMN IF NOT EXISTS foto VARCHAR(255) AFTER telefono_emergencia;
 
 -- =============================================================================
--- 2. Ensure socios table has all required columns
+-- 1. Add telefono_emergencia and foto to usuarios_staff table (si no existen)
 -- =============================================================================
--- telefono_emergencia was already added in previous updates, ensure it exists
-ALTER TABLE socios 
-ADD COLUMN IF NOT EXISTS telefono_emergencia VARCHAR(20) AFTER telefono;
+-- telefono_emergencia
+SELECT COUNT(*) INTO @cnt FROM information_schema.COLUMNS
+ WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'usuarios_staff' AND COLUMN_NAME = 'telefono_emergencia';
+SET @sql = IF(@cnt = 0, 'ALTER TABLE usuarios_staff ADD COLUMN telefono_emergencia VARCHAR(20) AFTER telefono', 'SELECT \"telefono_emergencia already exists\"');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+-- foto
+SELECT COUNT(*) INTO @cnt FROM information_schema.COLUMNS
+ WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'usuarios_staff' AND COLUMN_NAME = 'foto';
+SET @sql = IF(@cnt = 0, 'ALTER TABLE usuarios_staff ADD COLUMN foto VARCHAR(255) AFTER telefono_emergencia', 'SELECT \"foto already exists\"');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+-- =============================================================================
+-- 2. Ensure socios table has telefono_emergencia (si no existe)
+-- =============================================================================
+SELECT COUNT(*) INTO @cnt FROM information_schema.COLUMNS
+ WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'socios' AND COLUMN_NAME = 'telefono_emergencia';
+SET @sql = IF(@cnt = 0, 'ALTER TABLE socios ADD COLUMN telefono_emergencia VARCHAR(20) AFTER telefono', 'SELECT \"telefono_emergencia already exists in socios\"');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
 -- =============================================================================
 -- 3. Add style configuration entries if they don't exist
@@ -66,10 +81,12 @@ CREATE TABLE IF NOT EXISTS categorias_financieras (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Add foreign key for categoria_id after creating the table
-ALTER TABLE movimientos_financieros
-ADD CONSTRAINT fk_movimientos_categoria 
-FOREIGN KEY (categoria_id) REFERENCES categorias_financieras(id) ON DELETE RESTRICT;
+-- Add foreign key for categoria_id after creating the table (si no existe)
+-- Comprobamos si la constraint ya existe en information_schema.REFERENTIAL_CONSTRAINTS
+SELECT COUNT(*) INTO @cnt FROM information_schema.TABLE_CONSTRAINTS
+ WHERE CONSTRAINT_SCHEMA = DATABASE() AND TABLE_NAME = 'movimientos_financieros' AND CONSTRAINT_NAME = 'fk_movimientos_categoria';
+SET @sql = IF(@cnt = 0, 'ALTER TABLE movimientos_financieros ADD CONSTRAINT fk_movimientos_categoria FOREIGN KEY (categoria_id) REFERENCES categorias_financieras(id) ON DELETE RESTRICT', 'SELECT \"fk_movimientos_categoria already exists\"');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
 -- =============================================================================
 -- 6. Insert default financial categories
@@ -179,21 +196,46 @@ CREATE TABLE IF NOT EXISTS dispositivos_hikvision (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================================================
--- 10. Update accesos table to support HikVision devices
+-- 10. Update accesos table to support HikVision devices (si no existe la columna)
 -- =============================================================================
-ALTER TABLE accesos
-MODIFY COLUMN dispositivo_id INT NULL,
-ADD COLUMN IF NOT EXISTS dispositivo_tipo ENUM('shelly', 'hikvision') DEFAULT 'shelly' AFTER dispositivo_id;
+-- Hacemos la comprobación para la columna dispositivo_tipo
+SELECT COUNT(*) INTO @cnt FROM information_schema.COLUMNS
+ WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'accesos' AND COLUMN_NAME = 'dispositivo_tipo';
+SET @sql = IF(@cnt = 0, 'ALTER TABLE accesos MODIFY COLUMN dispositivo_id INT NULL, ADD COLUMN dispositivo_tipo ENUM(\'shelly\', \'hikvision\') DEFAULT \'shelly\' AFTER dispositivo_id', 'SELECT \"dispositivo_tipo already exists\"');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
 -- =============================================================================
--- 11. Add indexes for better performance
+-- 11. Add indexes for better performance (comprobando si existen)
 -- =============================================================================
--- Check and add indexes if they don't exist
-CREATE INDEX IF NOT EXISTS idx_socios_estado ON socios(estado);
-CREATE INDEX IF NOT EXISTS idx_socios_telefono ON socios(telefono);
-CREATE INDEX IF NOT EXISTS idx_socios_email ON socios(email);
-CREATE INDEX IF NOT EXISTS idx_usuarios_telefono ON usuarios_staff(telefono);
-CREATE INDEX IF NOT EXISTS idx_configuracion_grupo ON configuracion(grupo);
+-- idx_socios_estado
+SELECT COUNT(*) INTO @cnt FROM information_schema.STATISTICS
+ WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'socios' AND INDEX_NAME = 'idx_socios_estado';
+SET @sql = IF(@cnt = 0, 'CREATE INDEX idx_socios_estado ON socios(estado)', 'SELECT \"idx_socios_estado exists\"');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+-- idx_socios_telefono
+SELECT COUNT(*) INTO @cnt FROM information_schema.STATISTICS
+ WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'socios' AND INDEX_NAME = 'idx_socios_telefono';
+SET @sql = IF(@cnt = 0, 'CREATE INDEX idx_socios_telefono ON socios(telefono)', 'SELECT \"idx_socios_telefono exists\"');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+-- idx_socios_email
+SELECT COUNT(*) INTO @cnt FROM information_schema.STATISTICS
+ WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'socios' AND INDEX_NAME = 'idx_socios_email';
+SET @sql = IF(@cnt = 0, 'CREATE INDEX idx_socios_email ON socios(email)', 'SELECT \"idx_socios_email exists\"');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+-- idx_usuarios_telefono
+SELECT COUNT(*) INTO @cnt FROM information_schema.STATISTICS
+ WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'usuarios_staff' AND INDEX_NAME = 'idx_usuarios_telefono';
+SET @sql = IF(@cnt = 0, 'CREATE INDEX idx_usuarios_telefono ON usuarios_staff(telefono)', 'SELECT \"idx_usuarios_telefono exists\"');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+-- idx_configuracion_grupo
+SELECT COUNT(*) INTO @cnt FROM information_schema.STATISTICS
+ WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'configuracion' AND INDEX_NAME = 'idx_configuracion_grupo';
+SET @sql = IF(@cnt = 0, 'CREATE INDEX idx_configuracion_grupo ON configuracion(grupo)', 'SELECT \"idx_configuracion_grupo exists\"');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
 -- =============================================================================
 -- 12. Verify essential data exists
