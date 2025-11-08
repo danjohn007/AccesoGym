@@ -19,6 +19,37 @@ $sucursalId = Auth::isSuperadmin() ? null : Auth::sucursalId();
 $totalSocios = $socioModel->getActiveCount($sucursalId);
 $accesosHoy = $accesoModel->getTodayCount($sucursalId);
 $ingresosHoy = $pagoModel->getTodayIncome($sucursalId);
+
+// Add ingresos_extra and subtract gastos for today's income
+$db = Database::getInstance();
+$conn = $db->getConnection();
+$today = date('Y-m-d');
+
+// Get additional income from ingresos_extra
+$sql = "SELECT SUM(monto) as total FROM ingresos_extra WHERE DATE(fecha_ingreso) = ?";
+$params = [$today];
+if ($sucursalId) {
+    $sql .= " AND sucursal_id = ?";
+    $params[] = $sucursalId;
+}
+$stmt = $conn->prepare($sql);
+$stmt->execute($params);
+$ingresosExtra = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?? 0;
+
+// Get expenses from gastos
+$sql = "SELECT SUM(monto) as total FROM gastos WHERE DATE(fecha_gasto) = ?";
+$params = [$today];
+if ($sucursalId) {
+    $sql .= " AND sucursal_id = ?";
+    $params[] = $sucursalId;
+}
+$stmt = $conn->prepare($sql);
+$stmt->execute($params);
+$gastosHoy = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?? 0;
+
+// Calculate total income (payments + extra income - expenses)
+$ingresosHoy = $ingresosHoy + $ingresosExtra - $gastosHoy;
+
 $dispositivosOnline = $dispositivoModel->getOnlineCount($sucursalId);
 
 // Get recent access logs

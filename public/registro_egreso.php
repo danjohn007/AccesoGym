@@ -26,15 +26,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (empty($fecha_gasto)) $errors[] = 'La fecha es requerida';
         if (!$sucursal_id) $errors[] = 'La sucursal es requerida';
         
-        // Handle file upload
+        // Handle file upload (mandatory)
         $comprobante = null;
-        if (isset($_FILES['comprobante']) && $_FILES['comprobante']['error'] === UPLOAD_ERR_OK) {
+        if (!isset($_FILES['comprobante']) || $_FILES['comprobante']['error'] === UPLOAD_ERR_NO_FILE) {
+            $errors[] = 'El comprobante es requerido';
+        } elseif ($_FILES['comprobante']['error'] === UPLOAD_ERR_OK) {
             $uploadResult = uploadFile($_FILES['comprobante'], 'documents');
             if ($uploadResult['success']) {
                 $comprobante = $uploadResult['filename'];
             } else {
                 $errors[] = $uploadResult['message'];
             }
+        } else {
+            $errors[] = 'Error al cargar el comprobante';
         }
         
         if (empty($errors)) {
@@ -73,6 +77,10 @@ if (Auth::isSuperadmin()) {
     $stmt = $conn->query("SELECT id, nombre FROM sucursales WHERE activo=1 ORDER BY nombre");
     $sucursales = $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
+
+// Get financial categories for expenses
+$stmt = $conn->query("SELECT * FROM categorias_financieras WHERE activo=1 AND (tipo='egreso' OR tipo='ambos') ORDER BY nombre");
+$categorias = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 $pageTitle = 'Registrar Egreso';
 $csrfToken = Auth::generateCsrfToken();
@@ -139,12 +147,12 @@ $csrfToken = Auth::generateCsrfToken();
                     <select name="categoria" required
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                         <option value="">Seleccionar categoría</option>
-                        <option value="servicios" <?php echo ($_POST['categoria'] ?? '') === 'servicios' ? 'selected' : ''; ?>>Servicios</option>
-                        <option value="mantenimiento" <?php echo ($_POST['categoria'] ?? '') === 'mantenimiento' ? 'selected' : ''; ?>>Mantenimiento</option>
-                        <option value="personal" <?php echo ($_POST['categoria'] ?? '') === 'personal' ? 'selected' : ''; ?>>Personal</option>
-                        <option value="equipamiento" <?php echo ($_POST['categoria'] ?? '') === 'equipamiento' ? 'selected' : ''; ?>>Equipamiento</option>
-                        <option value="marketing" <?php echo ($_POST['categoria'] ?? '') === 'marketing' ? 'selected' : ''; ?>>Marketing</option>
-                        <option value="otros" <?php echo ($_POST['categoria'] ?? '') === 'otros' ? 'selected' : ''; ?>>Otros</option>
+                        <?php foreach ($categorias as $cat): ?>
+                            <option value="<?php echo htmlspecialchars($cat['nombre']); ?>" 
+                                    <?php echo ($_POST['categoria'] ?? '') === $cat['nombre'] ? 'selected' : ''; ?>>
+                                <?php echo htmlspecialchars($cat['nombre']); ?>
+                            </option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
                 
@@ -185,8 +193,8 @@ $csrfToken = Auth::generateCsrfToken();
                 <?php endif; ?>
                 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Comprobante</label>
-                    <input type="file" name="comprobante" accept=".pdf,.jpg,.jpeg,.png"
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Comprobante *</label>
+                    <input type="file" name="comprobante" accept=".pdf,.jpg,.jpeg,.png" required
                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     <p class="mt-1 text-xs text-gray-500">PDF, JPG o PNG (máximo 5MB)</p>
                 </div>

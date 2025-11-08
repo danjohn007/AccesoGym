@@ -33,7 +33,7 @@ if ($usuario_id) {
 
 // Filter by branch for non-superadmin users
 if ($sucursal_id) {
-    $where[] = "(b.sucursal_id = ? OR b.sucursal_id IS NULL)";
+    $where[] = "(sucursal_id = ? OR sucursal_id IS NULL)";
     $params[] = $sucursal_id;
 }
 
@@ -52,7 +52,7 @@ $stmt->execute($params);
 $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Count total
-$stmt = $conn->prepare("SELECT COUNT(*) as total FROM bitacora_eventos WHERE $whereClause");
+$stmt = $conn->prepare("SELECT COUNT(*) as total FROM bitacora_eventos b WHERE $whereClause");
 $stmt->execute(array_slice($params, 0, -2));
 $total = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
 $totalPages = ceil($total / $perPage);

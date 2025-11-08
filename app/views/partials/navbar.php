@@ -20,14 +20,15 @@
                            x-model="searchQuery"
                            @input.debounce.500ms="if(searchQuery.length >= 2) { fetch('<?php echo APP_URL; ?>/buscar_socios.php?q=' + encodeURIComponent(searchQuery)).then(r => r.json()).then(data => searchResults = data); } else { searchResults = []; }"
                            @focus="searchOpen = true"
-                           @click.away="searchOpen = false"
+                           @click.outside="searchOpen = false"
                            placeholder="Buscar socio por nombre, código, email o teléfono..."
                            class="w-full px-4 py-2 pl-10 pr-4 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                     
                     <!-- Search Results Dropdown -->
                     <div x-show="searchOpen && searchResults.length > 0" 
-                         class="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-lg border border-gray-200 max-h-96 overflow-y-auto z-40"
+                         @click.outside="searchOpen = false"
+                         class="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-lg border border-gray-200 max-h-96 overflow-y-auto z-[60]"
                          style="display: none;">
                         <template x-for="result in searchResults" :key="result.id">
                             <a :href="'socio_detalle.php?id=' + result.id" 
@@ -235,7 +236,9 @@
                 <i class="fas fa-file-import w-5 mr-3"></i>
                 <span class="font-medium">Importar Datos</span>
             </a>
+            <?php endif; ?>
             
+            <?php if (Auth::isSuperadmin()): ?>
             <a href="auditoria.php" class="flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
                 <i class="fas fa-clipboard-list w-5 mr-3"></i>
                 <span class="font-medium">Auditoría</span>
@@ -362,7 +365,9 @@
                 <i class="fas fa-file-import w-5 mr-3"></i>
                 <span class="font-medium">Importar Datos</span>
             </a>
+            <?php endif; ?>
             
+            <?php if (Auth::isSuperadmin()): ?>
             <a href="auditoria.php" class="flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
                 <i class="fas fa-clipboard-list w-5 mr-3"></i>
                 <span class="font-medium">Auditoría</span>

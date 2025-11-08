@@ -47,6 +47,52 @@ try {
     $stmt->execute($params);
     $gastosPorCategoria = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
+    // Get latest movements (payments, ingresos_extra, gastos) with pagination
+    $movimientos_page = $_GET['mov_page'] ?? 1;
+    $movimientos_per_page = 20;
+    $movimientos_offset = ($movimientos_page - 1) * $movimientos_per_page;
+    
+    // Combine all movements
+    $movimientos_sql = "
+        (SELECT 'pago' as tipo, fecha_pago as fecha, monto, metodo_pago as descripcion, 
+                CONCAT('Pago de ', s.nombre, ' ', s.apellido) as concepto, sucursal_id
+         FROM pagos p
+         LEFT JOIN socios s ON p.socio_id = s.id
+         WHERE estado='completado'
+         " . ($sucursal_id ? "AND p.sucursal_id = {$sucursal_id}" : "") . ")
+        UNION ALL
+        (SELECT 'ingreso' as tipo, fecha_ingreso as fecha, monto, categoria as descripcion, 
+                concepto, sucursal_id
+         FROM ingresos_extra
+         WHERE 1=1
+         " . ($sucursal_id ? "AND sucursal_id = {$sucursal_id}" : "") . ")
+        UNION ALL
+        (SELECT 'gasto' as tipo, fecha_gasto as fecha, -monto as monto, categoria as descripcion, 
+                concepto, sucursal_id
+         FROM gastos
+         WHERE 1=1
+         " . ($sucursal_id ? "AND sucursal_id = {$sucursal_id}" : "") . ")
+        ORDER BY fecha DESC
+        LIMIT {$movimientos_per_page} OFFSET {$movimientos_offset}
+    ";
+    
+    $stmt = $conn->query($movimientos_sql);
+    $ultimos_movimientos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    // Count total movements
+    $count_sql = "
+        SELECT COUNT(*) as total FROM (
+            (SELECT id FROM pagos WHERE estado='completado' " . ($sucursal_id ? "AND sucursal_id = {$sucursal_id}" : "") . ")
+            UNION ALL
+            (SELECT id FROM ingresos_extra WHERE 1=1 " . ($sucursal_id ? "AND sucursal_id = {$sucursal_id}" : "") . ")
+            UNION ALL
+            (SELECT id FROM gastos WHERE 1=1 " . ($sucursal_id ? "AND sucursal_id = {$sucursal_id}" : "") . ")
+        ) as all_movements
+    ";
+    $stmt = $conn->query($count_sql);
+    $total_movimientos = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+    $total_movimientos_pages = ceil($total_movimientos / $movimientos_per_page);
+    
 } catch (Exception $e) {
     $error = $e->getMessage();
 }
@@ -258,6 +304,96 @@ $pageTitle = 'Módulo Financiero';
                     </table>
                 </div>
             </div>
+        </div>
+        
+        <!-- Latest Movements Section -->
+        <div class="mt-8 bg-white rounded-lg shadow">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-900">
+                    <i class="fas fa-list mr-2"></i>Últimos Movimientos
+                </h3>
+                <p class="text-sm text-gray-600 mt-1">Historial completo de pagos, ingresos y egresos</p>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Concepto</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Categoría</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Monto</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <?php if (empty($ultimos_movimientos)): ?>
+                            <tr>
+                                <td colspan="5" class="px-6 py-8 text-center text-gray-500">
+                                    No hay movimientos registrados
+                                </td>
+                            </tr>
+                        <?php else: ?>
+                            <?php foreach ($ultimos_movimientos as $mov): ?>
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
+                                    <?php echo date('d/m/Y H:i', strtotime($mov['fecha'])); ?>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span class="px-2 py-1 text-xs rounded-full capitalize font-medium
+                                        <?php 
+                                        $colors = [
+                                            'pago' => 'bg-blue-100 text-blue-800',
+                                            'ingreso' => 'bg-green-100 text-green-800',
+                                            'gasto' => 'bg-red-100 text-red-800'
+                                        ];
+                                        echo $colors[$mov['tipo']] ?? 'bg-gray-100 text-gray-800';
+                                        ?>">
+                                        <?php echo htmlspecialchars($mov['tipo']); ?>
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-sm text-gray-900">
+                                    <?php echo htmlspecialchars($mov['concepto']); ?>
+                                </td>
+                                <td class="px-6 py-4 text-sm text-gray-600 capitalize">
+                                    <?php echo htmlspecialchars($mov['descripcion']); ?>
+                                </td>
+                                <td class="px-6 py-4 text-sm font-semibold text-right whitespace-nowrap
+                                    <?php echo $mov['monto'] >= 0 ? 'text-green-600' : 'text-red-600'; ?>">
+                                    <?php echo $mov['monto'] >= 0 ? '+' : ''; ?>$<?php echo number_format(abs($mov['monto']), 2); ?>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            <?php if ($total_movimientos_pages > 1): ?>
+            <div class="bg-gray-50 px-6 py-4 flex items-center justify-between border-t">
+                <div class="text-sm text-gray-700">
+                    Mostrando <?php echo $movimientos_offset + 1; ?> a <?php echo min($movimientos_offset + $movimientos_per_page, $total_movimientos); ?> de <?php echo $total_movimientos; ?> movimientos
+                </div>
+                <div class="flex space-x-2">
+                    <?php if ($movimientos_page > 1): ?>
+                    <a href="?<?php echo http_build_query(array_merge($_GET, ['mov_page' => $movimientos_page - 1])); ?>" 
+                       class="px-4 py-2 border rounded-lg hover:bg-gray-100">Anterior</a>
+                    <?php endif; ?>
+                    
+                    <?php for ($i = max(1, $movimientos_page - 2); $i <= min($total_movimientos_pages, $movimientos_page + 2); $i++): ?>
+                    <a href="?<?php echo http_build_query(array_merge($_GET, ['mov_page' => $i])); ?>" 
+                       class="px-4 py-2 border rounded-lg <?php echo $i === (int)$movimientos_page ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'; ?>">
+                        <?php echo $i; ?>
+                    </a>
+                    <?php endfor; ?>
+                    
+                    <?php if ($movimientos_page < $total_movimientos_pages): ?>
+                    <a href="?<?php echo http_build_query(array_merge($_GET, ['mov_page' => $movimientos_page + 1])); ?>" 
+                       class="px-4 py-2 border rounded-lg hover:bg-gray-100">Siguiente</a>
+                    <?php endif; ?>
+                </div>
+            </div>
+            <?php endif; ?>
         </div>
     </div>
     
