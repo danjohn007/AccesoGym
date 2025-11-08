@@ -36,11 +36,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['csrf_token'])) {
                 while (($data = fgetcsv($handle)) !== false) {
                     try {
                         if ($tipo === 'socios') {
-                            // Import members: nombre, apellido, email, telefono, tipo_membresia_id
-                            $stmt = $conn->prepare("INSERT INTO socios (codigo, nombre, apellido, email, telefono, sucursal_id, estado) 
-                                                   VALUES (?, ?, ?, ?, ?, ?, 'inactivo')");
+                            // Import members: nombre, apellido, email, telefono, sucursal, membresia, fecha_vencimiento, estado
+                            // If fewer columns provided, use defaults
+                            $nombre = $data[0] ?? '';
+                            $apellido = $data[1] ?? '';
+                            $email = $data[2] ?? '';
+                            $telefono = $data[3] ?? '';
+                            
+                            // New optional columns
+                            $sucursal_nombre = isset($data[4]) && !empty($data[4]) ? $data[4] : null;
+                            $membresia_nombre = isset($data[5]) && !empty($data[5]) ? $data[5] : null;
+                            $fecha_vencimiento = isset($data[6]) && !empty($data[6]) ? $data[6] : null;
+                            $estado = isset($data[7]) && !empty($data[7]) ? $data[7] : 'inactivo';
+                            
+                            // Resolve sucursal_id
+                            $import_sucursal_id = $sucursal_id;
+                            if ($sucursal_nombre && Auth::isSuperadmin()) {
+                                $sucStmt = $conn->prepare("SELECT id FROM sucursales WHERE nombre = ? LIMIT 1");
+                                $sucStmt->execute([$sucursal_nombre]);
+                                $sucResult = $sucStmt->fetch(PDO::FETCH_ASSOC);
+                                if ($sucResult) {
+                                    $import_sucursal_id = $sucResult['id'];
+                                }
+                            }
+                            
+                            // Resolve tipo_membresia_id
+                            $tipo_membresia_id = null;
+                            if ($membresia_nombre) {
+                                $memStmt = $conn->prepare("SELECT id FROM tipos_membresia WHERE nombre = ? LIMIT 1");
+                                $memStmt->execute([$membresia_nombre]);
+                                $memResult = $memStmt->fetch(PDO::FETCH_ASSOC);
+                                if ($memResult) {
+                                    $tipo_membresia_id = $memResult['id'];
+                                }
+                            }
+                            
+                            // Calculate fecha_inicio if we have fecha_vencimiento and tipo_membresia
+                            $fecha_inicio = null;
+                            if ($fecha_vencimiento && $tipo_membresia_id) {
+                                $memStmt = $conn->prepare("SELECT duracion_dias FROM tipos_membresia WHERE id = ?");
+                                $memStmt->execute([$tipo_membresia_id]);
+                                $memData = $memStmt->fetch(PDO::FETCH_ASSOC);
+                                if ($memData) {
+                                    $fecha_inicio = date('Y-m-d', strtotime($fecha_vencimiento . ' -' . $memData['duracion_dias'] . ' days'));
+                                }
+                            }
+                            
                             $codigo = 'SOC' . str_pad(rand(1, 99999), 5, '0', STR_PAD_LEFT);
-                            $stmt->execute([$codigo, $data[0], $data[1], $data[2], $data[3], $sucursal_id]);
+                            
+                            $stmt = $conn->prepare("INSERT INTO socios (codigo, nombre, apellido, email, telefono, sucursal_id, tipo_membresia_id, fecha_inicio, fecha_vencimiento, estado) 
+                                                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                            $stmt->execute([$codigo, $nombre, $apellido, $email, $telefono, $import_sucursal_id, $tipo_membresia_id, $fecha_inicio, $fecha_vencimiento, $estado]);
                             $imported++;
                         } elseif ($tipo === 'membresias') {
                             // Import memberships: nombre, descripcion, duracion_dias, precio
@@ -157,14 +203,24 @@ $csrfToken = Auth::generateCsrfToken();
                 
                 <div class="bg-blue-50 border-l-4 border-blue-500 p-4">
                     <h4 class="font-semibold text-blue-900 mb-2">Formato de Archivos CSV</h4>
-                    <div class="space-y-2 text-sm text-blue-800">
+                    <div class="space-y-3 text-sm text-blue-800">
                         <div>
-                            <strong>Socios:</strong>
-                            <code class="bg-white px-2 py-1 rounded text-xs">nombre,apellido,email,telefono</code>
+                            <strong>Socios (formato básico):</strong><br>
+                            <code class="bg-white px-2 py-1 rounded text-xs block mt-1">nombre,apellido,email,telefono</code>
                         </div>
                         <div>
-                            <strong>Membresías:</strong>
-                            <code class="bg-white px-2 py-1 rounded text-xs">nombre,descripcion,duracion_dias,precio</code>
+                            <strong>Socios (formato completo):</strong><br>
+                            <code class="bg-white px-2 py-1 rounded text-xs block mt-1">nombre,apellido,email,telefono,sucursal,membresia,fecha_vencimiento,estado</code>
+                            <p class="text-xs mt-1">
+                                • <strong>sucursal</strong>: Nombre de la sucursal (opcional, usa sucursal actual si se omite)<br>
+                                • <strong>membresia</strong>: Nombre del tipo de membresía (opcional)<br>
+                                • <strong>fecha_vencimiento</strong>: Formato YYYY-MM-DD (opcional)<br>
+                                • <strong>estado</strong>: activo, inactivo, suspendido o vencido (opcional, default: inactivo)
+                            </p>
+                        </div>
+                        <div>
+                            <strong>Membresías:</strong><br>
+                            <code class="bg-white px-2 py-1 rounded text-xs block mt-1">nombre,descripcion,duracion_dias,precio</code>
                         </div>
                     </div>
                 </div>
