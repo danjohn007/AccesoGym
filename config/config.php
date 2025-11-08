@@ -36,6 +36,7 @@ define('CSRF_TOKEN_NAME', 'csrf_token');
 define('UPLOAD_PATH', __DIR__ . '/../uploads/');
 define('MAX_FILE_SIZE', 5242880); // 5MB
 define('ALLOWED_IMAGE_TYPES', ['image/jpeg', 'image/png', 'image/jpg']);
+define('ALLOWED_DOCUMENT_TYPES', ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf']);
 
 // Email Configuration (SMTP)
 define('SMTP_ENABLED', false);

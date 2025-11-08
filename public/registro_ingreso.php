@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!isset($_FILES['comprobante']) || $_FILES['comprobante']['error'] === UPLOAD_ERR_NO_FILE) {
             $errors[] = 'El comprobante es requerido';
         } elseif ($_FILES['comprobante']['error'] === UPLOAD_ERR_OK) {
-            $uploadResult = uploadFile($_FILES['comprobante'], 'documents');
+            $uploadResult = uploadFile($_FILES['comprobante'], 'documents', ALLOWED_DOCUMENT_TYPES);
             if ($uploadResult['success']) {
                 $comprobante = $uploadResult['filename'];
             } else {

@@ -103,6 +103,7 @@ $csrfToken = Auth::generateCsrfToken();
     <title><?php echo $pageTitle; ?> - <?php echo APP_NAME; ?></title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 <body class="bg-gray-100">
     <?php include __DIR__ . '/../app/views/partials/navbar.php'; ?>

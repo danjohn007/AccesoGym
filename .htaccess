@@ -7,6 +7,9 @@
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
     
+    # Don't redirect uploads directory
+    RewriteCond %{REQUEST_URI} !^/uploads/
+    
     # Redirect to public directory if not already there
     RewriteCond %{REQUEST_URI} !^/public/
     RewriteRule ^(.*)$ /public/$1 [L]
