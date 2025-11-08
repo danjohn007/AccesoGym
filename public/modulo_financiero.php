@@ -69,10 +69,47 @@ $pageTitle = 'Módulo Financiero';
     
     <div class="container mx-auto px-4 py-8">
         <div class="mb-8">
-            <h1 class="text-3xl font-bold text-gray-900">
-                <i class="fas fa-chart-line text-blue-600 mr-2"></i><?php echo $pageTitle; ?>
-            </h1>
-            <p class="text-gray-600 mt-2">Resumen financiero y análisis de ingresos/gastos</p>
+            <div class="flex justify-between items-center mb-4">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">
+                        <i class="fas fa-chart-line text-blue-600 mr-2"></i><?php echo $pageTitle; ?>
+                    </h1>
+                    <p class="text-gray-600 mt-2">Resumen financiero y análisis de ingresos/gastos</p>
+                </div>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <a href="registro_ingreso.php" class="bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg shadow p-4 hover:from-green-600 hover:to-green-700 transition">
+                    <div class="flex items-center">
+                        <i class="fas fa-plus-circle text-3xl mr-4"></i>
+                        <div>
+                            <h3 class="text-lg font-semibold">Registrar Ingreso</h3>
+                            <p class="text-sm text-green-100">Agregar movimiento de ingreso</p>
+                        </div>
+                    </div>
+                </a>
+                
+                <a href="registro_egreso.php" class="bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg shadow p-4 hover:from-red-600 hover:to-red-700 transition">
+                    <div class="flex items-center">
+                        <i class="fas fa-minus-circle text-3xl mr-4"></i>
+                        <div>
+                            <h3 class="text-lg font-semibold">Registrar Egreso</h3>
+                            <p class="text-sm text-red-100">Agregar movimiento de egreso</p>
+                        </div>
+                    </div>
+                </a>
+                
+                <a href="categorias_financieras.php" class="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg shadow p-4 hover:from-blue-600 hover:to-blue-700 transition">
+                    <div class="flex items-center">
+                        <i class="fas fa-tags text-3xl mr-4"></i>
+                        <div>
+                            <h3 class="text-lg font-semibold">Categorías</h3>
+                            <p class="text-sm text-blue-100">Gestionar categorías financieras</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
         </div>
         
         <!-- Filters -->
