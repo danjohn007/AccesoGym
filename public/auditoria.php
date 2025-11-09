@@ -37,7 +37,7 @@ if ($usuario_id) {
 
 // Filter by branch for non-superadmin users
 if ($sucursal_id !== null) {
-    $where[] = "(sucursal_id = ? OR sucursal_id IS NULL)";
+    $where[] = "(b.sucursal_id = ? OR b.sucursal_id IS NULL)";
     $params[] = $sucursal_id;
 }
 
