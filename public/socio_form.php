@@ -98,7 +98,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     
                     // Generate QR code image
                     $qrUrl = generateQrCode($codigo);
-                    $qrImagePath = __DIR__ . '/../uploads/photos/' . $qrFilename;
+                    $qrImagePath = UPLOAD_PATH . 'photos/' . $qrFilename;
                     
                     // Download QR code with validation
                     $context = stream_context_create([

@@ -142,6 +142,10 @@ $pageTitle = 'Módulo Financiero';
                     </h1>
                     <p class="text-gray-600 mt-2">Resumen financiero y análisis de ingresos/gastos</p>
                 </div>
+                <a href="#movimientos" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-6 rounded-lg inline-flex items-center transition">
+                    <i class="fas fa-list-alt mr-2"></i>
+                    Ver todos los movimientos
+                </a>
             </div>
             
             <!-- Quick Actions -->

@@ -49,10 +49,15 @@ $stmt = $conn->prepare("SELECT b.*, u.nombre as usuario_nombre, u.email as usuar
                        LEFT JOIN usuarios_staff u ON b.usuario_id = u.id
                        WHERE $whereClause 
                        ORDER BY b.fecha_hora DESC 
-                       LIMIT ? OFFSET ?");
-$params[] = $perPage;
-$params[] = $offset;
-$stmt->execute($params);
+                       LIMIT :limit OFFSET :offset");
+// Bind parameters
+$paramIndex = 1;
+foreach ($params as $param) {
+    $stmt->bindValue($paramIndex++, $param);
+}
+$stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
+$stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+$stmt->execute();
 $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Count total
