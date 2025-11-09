@@ -6,22 +6,43 @@ $db = Database::getInstance();
 $conn = $db->getConnection();
 $user = Auth::user();
 
-// Filters
+// Filters with validation
 $fecha_inicio = $_GET['fecha_inicio'] ?? date('Y-m-d', strtotime('-30 days'));
 $fecha_fin = $_GET['fecha_fin'] ?? date('Y-m-d');
+
+// Validate date formats
+if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha_inicio)) {
+    $fecha_inicio = date('Y-m-d', strtotime('-30 days'));
+}
+if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha_fin)) {
+    $fecha_fin = date('Y-m-d');
+}
+
 $tipo = $_GET['tipo'] ?? '';
+// Validate tipo - only allow specific values
+if (!in_array($tipo, ['', 'pago', 'ingreso', 'gasto'])) {
+    $tipo = '';
+}
+
 $buscar = $_GET['buscar'] ?? '';
 $categoria = $_GET['categoria'] ?? '';
 $sucursal_id = Auth::isSuperadmin() ? ($_GET['sucursal_id'] ?? null) : $user['sucursal_id'];
 
-// Pagination
-$page = $_GET['page'] ?? 1;
+// Validate sucursal_id is numeric
+if ($sucursal_id !== null) {
+    $sucursal_id = (int)$sucursal_id;
+}
+
+// Pagination with validation
+$page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
 $perPage = 50;
 $offset = ($page - 1) * $perPage;
 
 try {
-    // Build WHERE clause for date range filter
-    $dateCondition = "fecha BETWEEN '{$fecha_inicio} 00:00:00' AND '{$fecha_fin} 23:59:59'";
+    // Build WHERE clause for date range filter (dates already validated as YYYY-MM-DD format)
+    $fechaInicioQuoted = $conn->quote($fecha_inicio . ' 00:00:00');
+    $fechaFinQuoted = $conn->quote($fecha_fin . ' 23:59:59');
+    $dateCondition = "fecha BETWEEN $fechaInicioQuoted AND $fechaFinQuoted";
     
     // Build the query dynamically based on filters
     $queries = [];
@@ -35,7 +56,7 @@ try {
          LEFT JOIN socios s ON p.socio_id = s.id
          LEFT JOIN sucursales su ON p.sucursal_id = su.id
          WHERE estado='completado'
-         " . ($sucursal_id ? "AND p.sucursal_id = {$sucursal_id}" : "") . ")";
+         " . ($sucursal_id ? "AND p.sucursal_id = " . (int)$sucursal_id : "") . ")";
     }
     
     // Extra income query
@@ -46,7 +67,7 @@ try {
          FROM ingresos_extra i
          LEFT JOIN sucursales su ON i.sucursal_id = su.id
          WHERE 1=1
-         " . ($sucursal_id ? "AND sucursal_id = {$sucursal_id}" : "") . ")";
+         " . ($sucursal_id ? "AND sucursal_id = " . (int)$sucursal_id : "") . ")";
     }
     
     // Expenses query
@@ -57,7 +78,7 @@ try {
          FROM gastos g
          LEFT JOIN sucursales su ON g.sucursal_id = su.id
          WHERE 1=1
-         " . ($sucursal_id ? "AND sucursal_id = {$sucursal_id}" : "") . ")";
+         " . ($sucursal_id ? "AND sucursal_id = " . (int)$sucursal_id : "") . ")";
     }
     
     // If no queries match (shouldn't happen), add empty result
@@ -84,11 +105,11 @@ try {
     
     $filterClause = implode(' AND ', $filterConditions);
     
-    // Final query with filters and pagination
+    // Final query with filters and pagination (perPage and offset already validated as integers)
     $final_sql = "SELECT * FROM ($movimientos_sql) as combined_movements 
                   WHERE $filterClause 
                   ORDER BY fecha DESC 
-                  LIMIT $perPage OFFSET $offset";
+                  LIMIT " . (int)$perPage . " OFFSET " . (int)$offset;
     
     $stmt = $conn->query($final_sql);
     $movimientos = $stmt->fetchAll(PDO::FETCH_ASSOC);
