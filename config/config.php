@@ -22,9 +22,9 @@ if (php_sapi_name() !== 'cli') {
     $baseUrl = $protocol . '://' . $host . ($scriptName !== '/' ? $scriptName : '');
     define('APP_URL', rtrim($baseUrl, '/'));
     
-    // UPLOAD_URL - For serving uploaded files (accessible from document root)
-    $uploadUrl = $protocol . '://' . $host;
-    define('UPLOAD_URL', rtrim($uploadUrl, '/'));
+    // UPLOAD_URL - For serving uploaded files from the root of the domain
+    // Uploads directory is at project root level, not inside /public/
+    define('UPLOAD_URL', $protocol . '://' . $host);
 } else {
     define('APP_URL', 'http://localhost');
     define('UPLOAD_URL', 'http://localhost');

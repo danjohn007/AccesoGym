@@ -55,7 +55,7 @@ try {
          FROM pagos p
          LEFT JOIN socios s ON p.socio_id = s.id
          LEFT JOIN sucursales su ON p.sucursal_id = su.id
-         WHERE estado='completado'
+         WHERE p.estado='completado'
          " . ($sucursal_id ? "AND p.sucursal_id = " . (int)$sucursal_id : "") . ")";
     }
     
