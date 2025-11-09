@@ -54,12 +54,24 @@ $pageTitle = 'Socios';
                 <i class="fas fa-chevron-down ml-2 text-sm" :class="{ 'rotate-180': filtersOpen }"></i>
             </button>
             
-            <div x-show="filtersOpen" class="mt-4 grid grid-cols-1 md:grid-cols-4 gap-4" style="display: none;">
+            <div x-show="filtersOpen" class="mt-4 grid grid-cols-1 md:grid-cols-<?php echo Auth::isSuperadmin() && count($sucursales) > 0 ? '5' : '4'; ?> gap-4" style="display: none;">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Buscar</label>
                     <input type="text" id="searchInput" placeholder="Nombre, código, teléfono..." 
                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                 </div>
+                
+                <?php if (Auth::isSuperadmin() && count($sucursales) > 0): ?>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Sucursal</label>
+                    <select id="sucursalFilter" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Todas</option>
+                        <?php foreach ($sucursales as $sucursal): ?>
+                            <option value="<?php echo $sucursal['id']; ?>"><?php echo htmlspecialchars($sucursal['nombre']); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <?php endif; ?>
                 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Estado</label>
@@ -118,7 +130,8 @@ $pageTitle = 'Socios';
                                     data-codigo="<?php echo htmlspecialchars(strtolower($socio['codigo'])); ?>"
                                     data-telefono="<?php echo htmlspecialchars($socio['telefono']); ?>"
                                     data-estado="<?php echo $socio['estado']; ?>"
-                                    data-membresia="<?php echo $socio['tipo_membresia_id']; ?>">
+                                    data-membresia="<?php echo $socio['tipo_membresia_id']; ?>"
+                                    data-sucursal="<?php echo $socio['sucursal_id']; ?>">
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <?php if ($socio['foto']): ?>
                                             <img src="<?php echo APP_URL . '/uploads/photos/' . htmlspecialchars($socio['foto']); ?>" 
@@ -187,12 +200,14 @@ $pageTitle = 'Socios';
         const searchInput = document.getElementById('searchInput');
         const estadoFilter = document.getElementById('estadoFilter');
         const membresiaFilter = document.getElementById('membresiaFilter');
+        const sucursalFilter = document.getElementById('sucursalFilter');
         const rows = document.querySelectorAll('.socio-row');
         
         function filterTable() {
             const searchTerm = searchInput.value.toLowerCase();
             const estadoValue = estadoFilter.value;
             const membresiaValue = membresiaFilter.value;
+            const sucursalValue = sucursalFilter ? sucursalFilter.value : '';
             
             rows.forEach(row => {
                 const nombre = row.dataset.nombre;
@@ -200,6 +215,7 @@ $pageTitle = 'Socios';
                 const telefono = row.dataset.telefono;
                 const estado = row.dataset.estado;
                 const membresia = row.dataset.membresia;
+                const sucursal = row.dataset.sucursal;
                 
                 const matchesSearch = !searchTerm || 
                     nombre.includes(searchTerm) || 
@@ -208,8 +224,9 @@ $pageTitle = 'Socios';
                 
                 const matchesEstado = !estadoValue || estado === estadoValue;
                 const matchesMembresia = !membresiaValue || membresia === membresiaValue;
+                const matchesSucursal = !sucursalValue || sucursal === sucursalValue;
                 
-                if (matchesSearch && matchesEstado && matchesMembresia) {
+                if (matchesSearch && matchesEstado && matchesMembresia && matchesSucursal) {
                     row.style.display = '';
                 } else {
                     row.style.display = 'none';
@@ -221,12 +238,14 @@ $pageTitle = 'Socios';
             searchInput.value = '';
             estadoFilter.value = '';
             membresiaFilter.value = '';
+            if (sucursalFilter) sucursalFilter.value = '';
             filterTable();
         }
         
         searchInput.addEventListener('input', filterTable);
         estadoFilter.addEventListener('change', filterTable);
         membresiaFilter.addEventListener('change', filterTable);
+        if (sucursalFilter) sucursalFilter.addEventListener('change', filterTable);
     </script>
 </body>
 </html>
