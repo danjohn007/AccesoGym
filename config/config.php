@@ -21,8 +21,13 @@ if (php_sapi_name() !== 'cli') {
     $scriptName = dirname($_SERVER['SCRIPT_NAME']);
     $baseUrl = $protocol . '://' . $host . ($scriptName !== '/' ? $scriptName : '');
     define('APP_URL', rtrim($baseUrl, '/'));
+    
+    // UPLOAD_URL - For serving uploaded files (accessible from document root)
+    $uploadUrl = $protocol . '://' . $host;
+    define('UPLOAD_URL', rtrim($uploadUrl, '/'));
 } else {
     define('APP_URL', 'http://localhost');
+    define('UPLOAD_URL', 'http://localhost');
 }
 
 define('APP_TIMEZONE', 'America/Mexico_City');

@@ -262,7 +262,7 @@ $csrfToken = Auth::generateCsrfToken();
                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     <?php if ($isEdit && !empty($socio['foto'])): ?>
                         <div class="mt-2">
-                            <img src="<?php echo APP_URL . '/uploads/photos/' . htmlspecialchars($socio['foto']); ?>" 
+                            <img src="<?php echo UPLOAD_URL . '/uploads/photos/' . htmlspecialchars($socio['foto']); ?>" 
                                  alt="Foto actual" class="h-20 w-20 rounded object-cover">
                         </div>
                     <?php endif; ?>

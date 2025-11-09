@@ -4,6 +4,7 @@ Auth::requireRole(['superadmin', 'admin']);
 
 $db = Database::getInstance();
 $conn = $db->getConnection();
+$user = Auth::user();
 
 // Date range filter
 $fecha_inicio = $_GET['fecha_inicio'] ?? date('Y-m-01');
@@ -145,7 +146,7 @@ $pageTitle = 'Módulo Financiero';
             </div>
             
             <!-- Quick Actions -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                 <a href="registro_ingreso.php" class="bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg shadow p-4 hover:from-green-600 hover:to-green-700 transition">
                     <div class="flex items-center">
                         <i class="fas fa-plus-circle text-3xl mr-4"></i>
@@ -162,6 +163,16 @@ $pageTitle = 'Módulo Financiero';
                         <div>
                             <h3 class="text-lg font-semibold">Registrar Egreso</h3>
                             <p class="text-sm text-red-100">Agregar movimiento de egreso</p>
+                        </div>
+                    </div>
+                </a>
+                
+                <a href="movimientos_financieros.php" class="bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg shadow p-4 hover:from-purple-600 hover:to-purple-700 transition">
+                    <div class="flex items-center">
+                        <i class="fas fa-list-alt text-3xl mr-4"></i>
+                        <div>
+                            <h3 class="text-lg font-semibold">Ver Movimientos</h3>
+                            <p class="text-sm text-purple-100">Historial con filtros avanzados</p>
                         </div>
                     </div>
                 </a>
@@ -335,8 +346,8 @@ $pageTitle = 'Módulo Financiero';
                     </h3>
                     <p class="text-sm text-gray-600 mt-1">Historial completo de pagos, ingresos y egresos</p>
                 </div>
-                <a href="#movimientos" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
-                    <i class="fas fa-filter mr-1"></i>Ver todos con filtros
+                <a href="movimientos_financieros.php" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded inline-flex items-center transition">
+                    <i class="fas fa-search mr-2"></i>Ver todos los movimientos
                 </a>
             </div>
             
