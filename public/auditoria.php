@@ -11,9 +11,11 @@ $fecha_inicio = $_GET['fecha_inicio'] ?? date('Y-m-d', strtotime('-7 days'));
 $fecha_fin = $_GET['fecha_fin'] ?? date('Y-m-d');
 
 // SuperAdmin can filter by branch, Admin is restricted to their branch
-$sucursal_id = Auth::isSuperadmin() ? ($_GET['sucursal_id'] ?? '') : Auth::sucursalId();
-// Convert empty string to null for consistency
-$sucursal_id = ($sucursal_id === '' || $sucursal_id === '0') ? null : (int)$sucursal_id;
+if (Auth::isSuperadmin()) {
+    $sucursal_id = !empty($_GET['sucursal_id']) ? (int)$_GET['sucursal_id'] : null;
+} else {
+    $sucursal_id = Auth::sucursalId();
+}
 $usuario_id = $_GET['usuario_id'] ?? '';
 $page = $_GET['page'] ?? 1;
 $perPage = 50;
@@ -100,7 +102,7 @@ $pageTitle = 'Auditoría del Sistema';
                     <select name="sucursal_id" class="w-full px-4 py-2 border rounded-lg">
                         <option value="">Todas</option>
                         <?php foreach ($sucursales as $suc): ?>
-                        <option value="<?php echo $suc['id']; ?>" <?php echo $sucursal_id == $suc['id'] ? 'selected' : ''; ?>>
+                        <option value="<?php echo $suc['id']; ?>" <?php echo ($sucursal_id !== null && $sucursal_id == $suc['id']) ? 'selected' : ''; ?>>
                             <?php echo htmlspecialchars($suc['nombre']); ?>
                         </option>
                         <?php endforeach; ?>

@@ -328,11 +328,46 @@ $pageTitle = 'Módulo Financiero';
         
         <!-- Latest Movements Section -->
         <div class="mt-8 bg-white rounded-lg shadow">
-            <div class="px-6 py-4 border-b border-gray-200">
-                <h3 class="text-lg font-semibold text-gray-900">
-                    <i class="fas fa-list mr-2"></i>Últimos Movimientos
-                </h3>
-                <p class="text-sm text-gray-600 mt-1">Historial completo de pagos, ingresos y egresos</p>
+            <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900">
+                        <i class="fas fa-list mr-2"></i>Últimos Movimientos
+                    </h3>
+                    <p class="text-sm text-gray-600 mt-1">Historial completo de pagos, ingresos y egresos</p>
+                </div>
+                <a href="#movimientos" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                    <i class="fas fa-filter mr-1"></i>Ver todos con filtros
+                </a>
+            </div>
+            
+            <!-- Movement Filters -->
+            <div id="movimientos" class="px-6 py-4 bg-gray-50 border-b">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Buscar</label>
+                        <input type="text" id="movimientoSearch" placeholder="Buscar concepto..." 
+                               class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Tipo</label>
+                        <select id="movimientoTipo" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Todos</option>
+                            <option value="pago">Pago</option>
+                            <option value="ingreso">Ingreso</option>
+                            <option value="gasto">Gasto</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Categoría</label>
+                        <input type="text" id="movimientoCategoria" placeholder="Filtrar categoría..." 
+                               class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div class="flex items-end">
+                        <button onclick="clearMovimientoFilters()" class="w-full px-4 py-2 text-sm bg-gray-500 hover:bg-gray-600 text-white rounded-md">
+                            <i class="fas fa-times mr-1"></i>Limpiar
+                        </button>
+                    </div>
+                </div>
             </div>
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
@@ -354,7 +389,10 @@ $pageTitle = 'Módulo Financiero';
                             </tr>
                         <?php else: ?>
                             <?php foreach ($ultimos_movimientos as $mov): ?>
-                            <tr class="hover:bg-gray-50">
+                            <tr class="hover:bg-gray-50 movimiento-row"
+                                data-tipo="<?php echo htmlspecialchars($mov['tipo']); ?>"
+                                data-concepto="<?php echo htmlspecialchars(strtolower($mov['concepto'])); ?>"
+                                data-categoria="<?php echo htmlspecialchars(strtolower($mov['descripcion'])); ?>">
                                 <td class="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
                                     <?php echo date('d/m/Y H:i', strtotime($mov['fecha'])); ?>
                                 </td>
@@ -455,6 +493,45 @@ $pageTitle = 'Módulo Financiero';
                 }
             }
         });
+        
+        // Movement filtering functionality
+        const movimientoSearch = document.getElementById('movimientoSearch');
+        const movimientoTipo = document.getElementById('movimientoTipo');
+        const movimientoCategoria = document.getElementById('movimientoCategoria');
+        const movimientoRows = document.querySelectorAll('.movimiento-row');
+        
+        function filterMovimientos() {
+            const searchTerm = movimientoSearch.value.toLowerCase();
+            const tipoValue = movimientoTipo.value;
+            const categoriaValue = movimientoCategoria.value.toLowerCase();
+            
+            movimientoRows.forEach(row => {
+                const tipo = row.dataset.tipo;
+                const concepto = row.dataset.concepto;
+                const categoria = row.dataset.categoria;
+                
+                const matchesSearch = !searchTerm || concepto.includes(searchTerm);
+                const matchesTipo = !tipoValue || tipo === tipoValue;
+                const matchesCategoria = !categoriaValue || categoria.includes(categoriaValue);
+                
+                if (matchesSearch && matchesTipo && matchesCategoria) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+        
+        function clearMovimientoFilters() {
+            movimientoSearch.value = '';
+            movimientoTipo.value = '';
+            movimientoCategoria.value = '';
+            filterMovimientos();
+        }
+        
+        movimientoSearch.addEventListener('input', filterMovimientos);
+        movimientoTipo.addEventListener('change', filterMovimientos);
+        movimientoCategoria.addEventListener('input', filterMovimientos);
     </script>
 </body>
 </html>
