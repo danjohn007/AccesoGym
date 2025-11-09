@@ -144,7 +144,7 @@ $pageTitle = 'Activos e Inventario';
                 <?php foreach ($activos as $activo): ?>
                     <div class="bg-white rounded-lg shadow hover:shadow-lg transition-shadow">
                         <?php if ($activo['foto']): ?>
-                            <img src="<?php echo APP_URL . '/uploads/activos/' . htmlspecialchars($activo['foto']); ?>" 
+                            <img src="<?php echo UPLOAD_URL . '/uploads/activos/' . htmlspecialchars($activo['foto']); ?>" 
                                  alt="<?php echo htmlspecialchars($activo['nombre']); ?>" 
                                  class="w-full h-48 object-cover rounded-t-lg">
                         <?php else: ?>

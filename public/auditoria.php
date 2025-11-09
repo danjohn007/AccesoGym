@@ -12,7 +12,7 @@ $fecha_fin = $_GET['fecha_fin'] ?? date('Y-m-d');
 
 // SuperAdmin can filter by branch, Admin is restricted to their branch
 if (Auth::isSuperadmin()) {
-    $sucursal_id = !empty($_GET['sucursal_id']) ? (int)$_GET['sucursal_id'] : null;
+    $sucursal_id = (isset($_GET['sucursal_id']) && $_GET['sucursal_id'] !== '') ? (int)$_GET['sucursal_id'] : null;
 } else {
     $sucursal_id = Auth::sucursalId();
 }

@@ -147,7 +147,7 @@ $csrfToken = Auth::generateCsrfToken();
                 <div class="flex items-center space-x-6">
                     <div class="flex-shrink-0">
                         <?php if (!empty($userData['foto']) && file_exists(UPLOAD_PATH . 'staff/' . $userData['foto'])): ?>
-                            <img src="<?php echo APP_URL . '/uploads/staff/' . htmlspecialchars($userData['foto']); ?>" 
+                            <img src="<?php echo UPLOAD_URL . '/uploads/staff/' . htmlspecialchars($userData['foto']); ?>" 
                                  alt="Foto de perfil" 
                                  class="h-24 w-24 rounded-full object-cover border-2 border-gray-300 cursor-pointer hover:opacity-80 transition-opacity"
                                  onclick="openPhotoModal(this.src)">
